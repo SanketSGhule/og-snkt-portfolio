@@ -1221,6 +1221,19 @@ button {
   text-transform: uppercase;
 }
 
+.footer-admin-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  margin-left: 6px;
+}
+
+.footer-admin-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 /* --------------------------------------------------------------------------
    9. GLightbox & Plyr Overrides (Dark & Creative Aesthetic)
    -------------------------------------------------------------------------- */
