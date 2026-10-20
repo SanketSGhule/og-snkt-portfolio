@@ -1,0 +1,8 @@
+{
+  "outputDirectory": "public",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/api/categories", "destination": "/api/categories.json" },
+    { "source": "/api/items", "destination": "/api/items.json" }
+  ]
+}

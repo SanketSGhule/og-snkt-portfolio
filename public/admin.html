@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OG.SNKT — Admin Panel</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <!-- LOGIN SCREEN -->
+  <div class="admin-login" id="loginScreen">
+    <div class="login-card">
+      <h1>OG.SNKT</h1>
+      <p>Admin Access</p>
+      <form id="loginForm">
+        <input type="password" id="passwordInput" placeholder="Enter password" autocomplete="current-password" required>
+        <button type="submit">Login</button>
+      </form>
+      <p class="login-error" id="loginError"></p>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD (hidden until login) -->
+  <div class="admin-dashboard" id="dashboard" style="display:none">
+    <!-- Top bar -->
+    <header class="admin-header">
+      <div class="admin-brand">OG.SNKT <span class="admin-badge">ADMIN</span></div>
+      <div class="admin-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
+        <a href="/" class="btn-secondary" target="_blank">View Site</a>
+        <button class="btn-danger" id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <div class="admin-tabs">
+      <button class="tab-btn active" data-tab="upload">Upload</button>
+      <button class="tab-btn" data-tab="manage">Manage Items</button>
+      <button class="tab-btn" data-tab="categories">Categories</button>
+    </div>
+
+    <!-- TAB: UPLOAD -->
+    <div class="tab-content active" id="tab-upload">
+      <div class="upload-zone" id="uploadZone">
+        <div class="upload-icon">📁</div>
+        <p>Drag & drop files here or <label for="fileInput" class="upload-link">browse</label></p>
+        <input type="file" id="fileInput" multiple accept="image/*,video/*" hidden>
+        <p class="upload-hint">Supports images (JPG, PNG, WebP) and videos (MP4, MOV, WebM)</p>
+      </div>
+      <!-- Selected files preview -->
+      <div class="upload-preview" id="uploadPreview"></div>
+      <!-- Upload form fields -->
+      <div class="upload-form" id="uploadForm" style="display:none">
+        <input type="text" id="uploadTitle" placeholder="Title (required)" required>
+        <textarea id="uploadDesc" placeholder="Description (optional)" rows="3"></textarea>
+        <select id="uploadCategory"></select>
+        <div class="form-group side-selector-group">
+          <label class="form-label">Portfolio Side:</label>
+          <div class="side-radio-group" id="uploadSideGroup">
+            <label class="side-radio-btn active">
+              <input type="radio" name="uploadSide" value="BOTH" checked>
+              <span>🔀 Both Sides</span>
+            </label>
+            <label class="side-radio-btn">
+              <input type="radio" name="uploadSide" value="A">
+              <span>🅰 Side A (Minimal)</span>
+            </label>
+            <label class="side-radio-btn">
+              <input type="radio" name="uploadSide" value="B">
+              <span>🅱 Side B (Aggressive)</span>
+            </label>
+          </div>
+        </div>
+        <button class="btn-primary" id="uploadBtn">Upload</button>
+        <div class="progress-bar" id="progressBar" style="display:none">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: MANAGE ITEMS -->
+    <div class="tab-content" id="tab-manage">
+      <div class="manage-toolbar">
+        <div class="manage-filters">
+          <select id="manageFilter"><option value="all">All Categories</option></select>
+          <select id="manageSideFilter">
+            <option value="all">All Sides (A, B & Both)</option>
+            <option value="A">Side A (Minimal)</option>
+            <option value="B">Side B (Overdrive)</option>
+          </select>
+        </div>
+        <button class="btn-danger" id="bulkDeleteBtn" style="display:none">Delete Selected</button>
+      </div>
+      <div class="manage-grid" id="manageGrid">
+        <!-- Sortable grid of items -->
+      </div>
+      <div class="manage-empty" id="manageEmpty" style="display:none">
+        <p>No items yet. Go to Upload tab to add some!</p>
+      </div>
+    </div>
+
+    <!-- TAB: CATEGORIES -->
+    <div class="tab-content" id="tab-categories">
+      <div class="category-add">
+        <input type="text" id="newCategoryInput" placeholder="New category name">
+        <button class="btn-primary" id="addCategoryBtn">Add Category</button>
+      </div>
+      <div class="category-list" id="categoryList">
+        <!-- Sortable list of categories -->
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div class="modal" id="editModal" style="display:none">
+    <div class="modal-content">
+      <h2>Edit Item</h2>
+      <input type="text" id="editTitle" placeholder="Title">
+      <textarea id="editDesc" placeholder="Description" rows="3"></textarea>
+      <select id="editCategory"></select>
+      <div class="form-group side-selector-group">
+        <label class="form-label">Portfolio Side:</label>
+        <div class="side-radio-group" id="editSideGroup">
+          <label class="side-radio-btn">
+            <input type="radio" name="editSide" value="BOTH">
+            <span>🔀 Both Sides</span>
+          </label>
+          <label class="side-radio-btn">
+            <input type="radio" name="editSide" value="A">
+            <span>🅰 Side A (Minimal)</span>
+          </label>
+          <label class="side-radio-btn">
+            <input type="radio" name="editSide" value="B">
+            <span>🅱 Side B (Aggressive)</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="editCancel">Cancel</button>
+        <button class="btn-primary" id="editSave">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

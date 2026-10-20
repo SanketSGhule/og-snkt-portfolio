@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Connect — OG.SNKT</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23ff6b35'/%3E%3Ctext x='50' y='65' font-family='sans-serif' font-size='45' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3EOG%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070914;
+      --card: #10152b;
+      --accent: #7c75ff;
+      --accent-b: #ff003c;
+      --text: #f0f3fa;
+      --subtext: #8d9bb5;
+      --border: rgba(124, 117, 255, 0.25);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+    .container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 32px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    .badge {
+      display: inline-block;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: var(--accent);
+      background: rgba(124, 117, 255, 0.15);
+      border: 1px solid rgba(124, 117, 255, 0.35);
+      padding: 5px 14px;
+      border-radius: 9999px;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #ffffff 30%, #93c5fd 70%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p {
+      color: var(--subtext);
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .qr-frame {
+      display: inline-flex;
+      padding: 16px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      margin-bottom: 24px;
+    }
+    #qrcode img, #qrcode canvas {
+      display: block;
+      width: 200px;
+      height: 200px;
+    }
+    .url-box {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #93c5fd;
+      letter-spacing: 0.04em;
+      margin-bottom: 20px;
+      word-break: break-all;
+      user-select: all;
+    }
+    .tip {
+      font-size: 0.8rem;
+      color: var(--subtext);
+      line-height: 1.4;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 18px;
+    }
+    .btn-return {
+      display: inline-block;
+      margin-top: 20px;
+      color: var(--subtext);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+    .btn-return:hover {
+      color: var(--accent);
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="badge">Local Network Mobile Access</div>
+    <h1>Scan with Mobile</h1>
+    <p>Scan this QR code with your phone camera to open the OG.SNKT portfolio instantly.</p>
+    
+    <div class="qr-frame">
+      <div id="qrcode"></div>
+    </div>
+
+    <div class="url-box" id="urlBox">http://194.100.4.18:3000</div>
+
+    <div class="tip">
+      <strong>Wi-Fi Note:</strong> Ensure your phone is connected to the same Wi-Fi / local network as your computer.
+    </div>
+
+    <a href="/" class="btn-return">← Back to Portfolio</a>
+  </div>
+
+  <script>
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const mobileUrl = isLocalhost ? 'http://194.100.4.18:3000' : window.location.origin;
+    document.getElementById('urlBox').textContent = mobileUrl;
+
+    new QRCode(document.getElementById('qrcode'), {
+      text: mobileUrl,
+      width: 200,
+      height: 200,
+      colorDark: '#070914',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  </script>
+</body>
+</html>

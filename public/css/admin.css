@@ -1,0 +1,1243 @@
+/* ==========================================================================
+   OG.SNKT Admin Panel Styles
+   Complementary to /css/style.css with matching theme variables & design
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Theme Variables & Base Fallbacks (if style.css not loaded)
+   -------------------------------------------------------------------------- */
+:root {
+  --font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-full: 9999px;
+  --ease-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-theme: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #141414;
+  --bg-card: #1a1a1a;
+  --bg-card-hover: #222222;
+  --text-primary: #f0f0f0;
+  --text-secondary: #888888;
+  --accent: #ff6b35;
+  --accent-hover: #ff8c5a;
+  --border: #2a2a2a;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --nav-bg: rgba(10, 10, 10, 0.92);
+  --glass-bg: rgba(26, 26, 26, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] {
+  --bg-primary: #fafafa;
+  --bg-secondary: #f0f0f0;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f5f5f5;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --accent: #ff6b35;
+  --accent-hover: #e55a25;
+  --border: #e0e0e0;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --nav-bg: rgba(250, 250, 250, 0.92);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   2. Reset & Typography
+   -------------------------------------------------------------------------- */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  transition: var(--transition-theme);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+input, textarea, select, button {
+  font-family: var(--font-body);
+}
+
+/* --------------------------------------------------------------------------
+   3. Buttons & Controls
+   -------------------------------------------------------------------------- */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  outline: none;
+  transition: all 0.25s var(--ease-smooth);
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.25s var(--ease-smooth);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.3);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 107, 53, 0.45);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+  background: var(--danger);
+  color: #ffffff;
+  border-color: var(--danger);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+
+.theme-toggle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  transition: all 0.25s var(--ease-smooth);
+}
+
+.theme-toggle:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  transform: rotate(15deg);
+}
+
+/* --------------------------------------------------------------------------
+   4. Login Screen
+   -------------------------------------------------------------------------- */
+.admin-login {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 35%, rgba(255, 107, 53, 0.12), transparent 70%), var(--bg-primary);
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 44px 36px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45);
+  text-align: center;
+  animation: modalZoomIn 0.3s var(--ease-smooth);
+}
+
+.login-card h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.login-card p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 28px;
+}
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-card input[type="password"] {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: all 0.25s ease;
+}
+
+.login-card input[type="password"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+}
+
+.login-card button[type="submit"] {
+  padding: 14px 20px;
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.3);
+  transition: all 0.25s var(--ease-smooth);
+}
+
+.login-card button[type="submit"]:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 107, 53, 0.45);
+}
+
+.login-error {
+  min-height: 22px;
+  margin-top: 14px;
+  margin-bottom: 0 !important;
+  font-size: 0.88rem;
+  color: var(--danger) !important;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+/* --------------------------------------------------------------------------
+   5. Admin Header
+   -------------------------------------------------------------------------- */
+.admin-dashboard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+}
+
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 72px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--nav-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition-theme);
+}
+
+.admin-brand {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: var(--accent);
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   6. Admin Tabs
+   -------------------------------------------------------------------------- */
+.admin-tabs {
+  max-width: 1240px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 32px 0;
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.admin-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-btn {
+  padding: 10px 24px;
+  border-radius: var(--radius-full);
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  transition: all 0.25s var(--ease-smooth);
+  margin-bottom: 16px;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.tab-btn.active {
+  color: #ffffff;
+  background: var(--accent);
+  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35);
+}
+
+/* --------------------------------------------------------------------------
+   7. Tab Content Areas
+   -------------------------------------------------------------------------- */
+.tab-content {
+  display: none;
+  max-width: 1240px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px;
+  box-sizing: border-box;
+  animation: fadeIn 0.3s var(--ease-smooth);
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. Upload Tab
+   -------------------------------------------------------------------------- */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  min-height: 280px;
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-smooth);
+}
+
+.upload-zone:hover {
+  border-color: var(--accent);
+  background: var(--bg-card-hover);
+}
+
+.upload-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(255, 107, 53, 0.08);
+  transform: scale(1.008);
+}
+
+.upload-icon {
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.15));
+}
+
+.upload-zone p {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+.upload-link {
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.upload-hint {
+  font-size: 0.85rem !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Upload Preview */
+.upload-preview {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 20px 4px 10px;
+  scroll-behavior: smooth;
+}
+
+.upload-preview:empty {
+  display: none;
+}
+
+.preview-card {
+  position: relative;
+  flex: 0 0 160px;
+  height: 180px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 14px var(--shadow);
+  transition: transform 0.2s var(--ease-smooth);
+}
+
+.preview-card:hover {
+  transform: translateY(-2px);
+}
+
+.preview-thumb {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  background: var(--bg-secondary);
+}
+
+.preview-video-icon {
+  width: 100%;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  background: var(--bg-secondary);
+  color: var(--accent);
+}
+
+.preview-info {
+  padding: 8px 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  background: var(--bg-card);
+}
+
+.preview-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preview-size {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.preview-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.preview-remove:hover {
+  background: var(--danger);
+  transform: scale(1.1);
+}
+
+/* Upload Form */
+.upload-form {
+  margin-top: 24px;
+  background: var(--bg-card);
+  padding: 28px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.upload-form input,
+.upload-form textarea,
+.upload-form select,
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.upload-form textarea,
+.modal-content textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.upload-form input:focus,
+.upload-form textarea:focus,
+.upload-form select:focus,
+.modal-content input:focus,
+.modal-content textarea:focus,
+.modal-content select:focus,
+.category-add input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  border-radius: var(--radius-full);
+  transition: width 0.2s ease-out;
+}
+
+/* --------------------------------------------------------------------------
+   9. Manage Items Tab
+   -------------------------------------------------------------------------- */
+.manage-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.manage-toolbar select {
+  min-width: 220px;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.manage-toolbar select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.manage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.manage-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border);
+  font-size: 1.05rem;
+}
+
+/* Manage Item Card */
+.manage-card {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth), border-color 0.25s;
+  user-select: none;
+}
+
+.manage-card:hover {
+  border-color: rgba(255, 107, 53, 0.45);
+  box-shadow: 0 10px 26px var(--shadow);
+}
+
+.manage-thumb-wrap {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.manage-thumb-wrap img,
+.manage-thumb-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.manage-media-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(4px);
+}
+
+/* Top-left bulk checkbox */
+.manage-select-wrap {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: 6px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+}
+
+.manage-select-wrap input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Top-right actions overlay */
+.manage-card-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.manage-card:hover .manage-card-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.card-action-btn:hover {
+  transform: scale(1.08);
+}
+
+.card-action-btn.edit-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.card-action-btn.del-btn:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Card details */
+.manage-card-info {
+  padding: 12px 14px 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.manage-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.manage-card-category {
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Drag handle at bottom */
+.manage-drag-handle {
+  width: 100%;
+  padding: 8px;
+  text-align: center;
+  color: var(--text-secondary);
+  cursor: grab;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+  box-sizing: border-box;
+}
+
+.manage-drag-handle:hover {
+  color: var(--accent);
+  background: var(--bg-card-hover);
+}
+
+.manage-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* SortableJS drag classes */
+.sortable-ghost {
+  opacity: 0.45 !important;
+  border: 2px dashed var(--accent) !important;
+  background: rgba(255, 107, 53, 0.08) !important;
+}
+
+.sortable-chosen {
+  border-color: var(--accent) !important;
+}
+
+.sortable-drag {
+  opacity: 0.95 !important;
+  transform: scale(1.03) !important;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45) !important;
+  z-index: 1000 !important;
+}
+
+/* --------------------------------------------------------------------------
+   10. Categories Tab
+   -------------------------------------------------------------------------- */
+.category-add {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  max-width: 600px;
+}
+
+.category-add input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 680px;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: all 0.2s var(--ease-smooth);
+}
+
+.category-item:hover {
+  border-color: rgba(255, 107, 53, 0.35);
+  background: var(--bg-card-hover);
+}
+
+.cat-drag-handle {
+  cursor: grab;
+  color: var(--text-secondary);
+  font-size: 1.15rem;
+  padding: 4px 8px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.cat-drag-handle:hover {
+  color: var(--accent);
+}
+
+.cat-drag-handle:active {
+  cursor: grabbing;
+}
+
+.cat-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  font-size: 0.95rem;
+  user-select: none;
+}
+
+.cat-edit-input {
+  flex: 1;
+  padding: 6px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: inherit;
+  margin-right: 12px;
+}
+
+.cat-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cat-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.cat-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.cat-btn.del-btn:hover {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* --------------------------------------------------------------------------
+   11. Modal
+   -------------------------------------------------------------------------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: modalFadeIn 0.25s var(--ease-smooth);
+}
+
+.modal-content {
+  background: var(--bg-card);
+  width: 100%;
+  max-width: 520px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 32px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: modalZoomIn 0.25s var(--ease-smooth);
+}
+
+.modal-content h2 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   12. Toast Notification
+   -------------------------------------------------------------------------- */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  padding: 14px 22px;
+  border-radius: var(--radius-md);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  transition: opacity 0.3s var(--ease-smooth), transform 0.3s var(--ease-smooth);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 420px;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.toast.toast-success {
+  background: #064e3b;
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #ecfdf5;
+}
+
+.toast.toast-error {
+  background: #7f1d1d;
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fef2f2;
+}
+
+/* --------------------------------------------------------------------------
+   13. Responsive Styles
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 0 16px;
+    height: 64px;
+  }
+
+  .admin-tabs {
+    padding: 16px 16px 0;
+    gap: 8px;
+  }
+
+  .tab-btn {
+    padding: 8px 18px;
+    font-size: 0.88rem;
+    margin-bottom: 12px;
+  }
+
+  .tab-content {
+    padding: 20px 16px;
+  }
+
+  .manage-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .manage-thumb-wrap {
+    height: 130px;
+  }
+
+  .category-add {
+    max-width: 100%;
+  }
+
+  .modal-content {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .manage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-actions .btn-secondary {
+    display: none; /* Keep header compact on very small phones */
+  }
+
+  .upload-zone {
+    padding: 30px 16px;
+    min-height: 220px;
+  }
+
+  .category-add {
+    flex-direction: column;
+  }
+
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Side Selector Radio Group & Badges
+   -------------------------------------------------------------------------- */
+.side-selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.side-radio-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.side-radio-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.22s ease;
+  user-select: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.side-radio-btn input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.side-radio-btn:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.side-radio-btn:has(input:checked) {
+  border-color: var(--accent);
+  background: rgba(255, 107, 53, 0.14);
+  color: var(--text-primary);
+  box-shadow: 0 0 14px rgba(255, 107, 53, 0.2);
+}
+
+/* Manage Filters Row */
+.manage-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.manage-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+/* Side Badges on Manage Cards */
+.manage-side-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.badge-side-a {
+  background: rgba(226, 183, 122, 0.18);
+  color: #e2b77a;
+  border: 1px solid rgba(226, 183, 122, 0.4);
+}
+
+.badge-side-b {
+  background: rgba(0, 245, 255, 0.18);
+  color: #00f5ff;
+  border: 1px solid rgba(0, 245, 255, 0.45);
+}
+
+.badge-side-both {
+  background: rgba(255, 107, 53, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(255, 107, 53, 0.35);
+}
+
+@media (max-width: 600px) {
+  .side-radio-group {
+    grid-template-columns: 1fr;
+  }
+  .manage-filters {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+}
+
