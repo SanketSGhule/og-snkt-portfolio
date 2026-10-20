@@ -723,6 +723,14 @@ function setSideDOMState(side) {
     btnB.setAttribute('aria-checked', side === 'B');
   }
 
+  // Update mobile drawer persona cards state
+  const drawerSideA = document.getElementById('drawerSideA');
+  const drawerSideB = document.getElementById('drawerSideB');
+  if (drawerSideA && drawerSideB) {
+    drawerSideA.classList.toggle('active', side === 'A');
+    drawerSideB.classList.toggle('active', side === 'B');
+  }
+
   // Update hero text & subtitle dynamically
   const heroTag = document.getElementById('heroTag');
   const heroSubtitle = document.getElementById('heroSubtitle');
@@ -800,6 +808,83 @@ function escapeHtml(str) {
 }
 
 // -----------------------------------------------------------------------------
+// Mobile Drawer Controller
+// -----------------------------------------------------------------------------
+function initMobileDrawer() {
+  const menuBtn = document.getElementById('mobileMenuBtn');
+  const drawer = document.getElementById('mobileDrawer');
+  const backdrop = document.getElementById('mobileDrawerBackdrop');
+  const closeBtn = document.getElementById('drawerCloseBtn');
+  const sideABtn = document.getElementById('drawerSideA');
+  const sideBBtn = document.getElementById('drawerSideB');
+  const themeBtn = document.getElementById('drawerThemeToggle');
+  const links = drawer ? drawer.querySelectorAll('a') : [];
+
+  function openDrawer() {
+    if (drawer && backdrop) {
+      drawer.classList.add('active');
+      backdrop.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      if (menuBtn) menuBtn.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  function closeDrawer() {
+    if (drawer && backdrop) {
+      drawer.classList.remove('active');
+      backdrop.classList.remove('active');
+      document.body.style.overflow = '';
+      if (menuBtn) menuBtn.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  if (menuBtn) menuBtn.addEventListener('click', openDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+  if (backdrop) backdrop.addEventListener('click', closeDrawer);
+
+  links.forEach(l => l.addEventListener('click', closeDrawer));
+
+  if (sideABtn) {
+    sideABtn.addEventListener('click', () => {
+      if (currentSide === 'A' || isSideTransitioning) {
+        closeDrawer();
+        return;
+      }
+      currentSide = 'A';
+      localStorage.setItem(SIDE_KEY, 'A');
+      applySideMode('A', true);
+      closeDrawer();
+    });
+  }
+
+  if (sideBBtn) {
+    sideBBtn.addEventListener('click', () => {
+      if (currentSide === 'B' || isSideTransitioning) {
+        closeDrawer();
+        return;
+      }
+      currentSide = 'B';
+      localStorage.setItem(SIDE_KEY, 'B');
+      applySideMode('B', true);
+      closeDrawer();
+    });
+  }
+
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme(nextTheme);
+      localStorage.setItem(THEME_KEY, nextTheme);
+    });
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+}
+
+// -----------------------------------------------------------------------------
 // App Initialization
 // -----------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', async () => {
@@ -808,6 +893,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 2. Initialize Side A / Side B Dual Switcher
   initSideSwitcher();
+
+  // 3. Initialize Mobile Navigation Drawer
+  initMobileDrawer();
 
   // 3. Setup Smooth Scroll
   initSmoothScroll();
