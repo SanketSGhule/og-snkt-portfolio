@@ -15,7 +15,7 @@
   <!-- CDN Stylesheets -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
-  <link rel="stylesheet" href="/css/style.css?v=2.1">
+  <link rel="stylesheet" href="/css/style.css?v=2.2">
 </head>
 <body>
   <!-- Cinematic Tape Flip / Mode Transition Overlay -->
@@ -94,6 +94,104 @@
           </svg>
         </button>
       </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" aria-expanded="false">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Navigation Slide-Out Drawer -->
+  <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop" aria-hidden="true"></div>
+  <aside class="mobile-drawer" id="mobileDrawer" aria-label="Mobile Navigation" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <span class="brand-name">OG.SNKT</span>
+        <span class="brand-ai-tag">proudly made with AI</span>
+      </div>
+      <button class="drawer-close-btn" id="drawerCloseBtn" aria-label="Close Navigation Menu">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Persona Mode Switcher Section -->
+      <div class="drawer-group">
+        <div class="drawer-group-title">PORTFOLIO PERSONA</div>
+        <div class="drawer-mode-cards">
+          <button class="drawer-mode-card active" id="drawerSideA" data-side="A">
+            <div class="mode-card-top">
+              <span class="mode-card-indicator indicator-a"></span>
+              <span class="mode-card-title">SIDE A</span>
+              <span class="mode-card-pill pill-a">SILENT BLUE</span>
+            </div>
+            <p class="mode-card-desc">Silent Blue & Purple • Editorial Pacing • Minimalist 35mm Cuts</p>
+          </button>
+
+          <button class="drawer-mode-card" id="drawerSideB" data-side="B">
+            <div class="mode-card-top">
+              <span class="mode-card-indicator indicator-b"></span>
+              <span class="mode-card-title">SIDE B</span>
+              <span class="mode-card-pill pill-b">AGGRESSIVE RED</span>
+            </div>
+            <p class="mode-card-desc">Aggressive Red Overdrive • Hyper-Kinetic • Raw Volcanic Glitch</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Links Section -->
+      <div class="drawer-group">
+        <div class="drawer-group-title">NAVIGATION & TOOLS</div>
+        <div class="drawer-links-list">
+          <a href="#hero" class="drawer-link-item" id="drawerLinkHero">
+            <span class="drawer-link-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-title">Home</span>
+              <span class="drawer-link-desc">Back to top</span>
+            </div>
+          </a>
+
+          <a href="#portfolio" class="drawer-link-item" id="drawerLinkPortfolio">
+            <span class="drawer-link-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            </span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-title">Explore Works</span>
+              <span class="drawer-link-desc">Video edits, posters & motion</span>
+            </div>
+          </a>
+
+          <button class="drawer-link-item" id="drawerThemeToggle">
+            <span class="drawer-link-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-title" id="drawerThemeLabel">Toggle Light / Dark</span>
+              <span class="drawer-link-desc">Change interface theme</span>
+            </div>
+          </button>
+
+          <a href="/admin" class="drawer-link-item drawer-admin-link">
+            <span class="drawer-link-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </span>
+            <div class="drawer-link-text">
+              <span class="drawer-link-title">Admin Portal</span>
+              <span class="drawer-link-desc">Manage portfolio content</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </aside>
     </div>
   </nav>
 
@@ -321,6 +419,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-  <script src="/js/portfolio.js"></script>
+  <script src="/js/portfolio.js?v=2.2"></script>
 </body>
 </html>
