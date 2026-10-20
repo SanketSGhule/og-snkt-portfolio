@@ -241,18 +241,19 @@ function initAuthHandlers() {
 
       try {
         let loggedIn = false;
-        try {
-          const res = await apiCall('/api/admin/login', 'POST', { password });
-          if (res && (res.success || res.isAdmin)) {
-            loggedIn = true;
-          }
-        } catch (apiErr) {
-          // If deployed on a static CDN (Vercel) without active Node backend,
-          // verify admin master password directly client-side
-          if (password === 'ogsnkt2024') {
-            loggedIn = true;
-          } else {
-            throw new Error('Invalid password. Please try again.');
+
+        // 1. Instant check for master password (works directly on static CDN without waiting for network error)
+        if (password === 'ogsnkt2024') {
+          loggedIn = true;
+        } else {
+          // 2. Try backend API if custom password or local backend is active
+          try {
+            const res = await apiCall('/api/admin/login', 'POST', { password });
+            if (res && (res.success || res.isAdmin)) {
+              loggedIn = true;
+            }
+          } catch (apiErr) {
+            loggedIn = false;
           }
         }
 
@@ -261,7 +262,11 @@ function initAuthHandlers() {
           sessionStorage.setItem('og_admin_session', 'true');
           showDashboard();
           showToast('Welcome back, Admin!', 'success');
-          await initDashboardData();
+          try {
+            await initDashboardData();
+          } catch (dataErr) {
+            console.warn('Dashboard data warning:', dataErr);
+          }
         } else {
           throw new Error('Invalid password. Please try again.');
         }
