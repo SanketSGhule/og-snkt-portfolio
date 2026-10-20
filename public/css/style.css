@@ -1286,6 +1286,263 @@ button {
 }
 
 /* --------------------------------------------------------------------------
+   Mobile Navigation Drawer & Hamburger Menu
+   -------------------------------------------------------------------------- */
+.mobile-menu-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  padding: 8px;
+  transition: all 0.25s ease;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.mobile-menu-btn:hover, .mobile-menu-btn:active {
+  background: rgba(var(--accent-rgb), 0.15);
+  border-color: var(--accent);
+}
+
+.hamburger-line {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background-color: var(--text-primary);
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.mobile-drawer-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 86vw;
+  max-width: 360px;
+  background: var(--bg-primary);
+  border-left: 1px solid var(--border);
+  z-index: 9999;
+  transform: translateX(100%);
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.65);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-drawer.active {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.drawer-close-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.drawer-close-btn:hover {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.15);
+}
+
+.drawer-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.drawer-group-title {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.drawer-mode-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drawer-mode-card {
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.drawer-mode-card:hover {
+  border-color: var(--accent);
+}
+
+.drawer-mode-card.active {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.12);
+  box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.2);
+}
+
+.mode-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.mode-card-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.indicator-a { background: #7c75ff; box-shadow: 0 0 8px #7c75ff; }
+.indicator-b { background: #ff003c; box-shadow: 0 0 8px #ff003c; }
+
+.mode-card-title {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.mode-card-pill {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  margin-left: auto;
+  letter-spacing: 0.06em;
+}
+
+.pill-a {
+  background: rgba(124, 117, 255, 0.2);
+  color: #a5b4fc;
+}
+
+.pill-b {
+  background: rgba(255, 0, 60, 0.2);
+  color: #ff4d6d;
+}
+
+.mode-card-desc {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.drawer-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drawer-link-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-primary);
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.drawer-link-item:hover, .drawer-link-item:active {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.08);
+}
+
+.drawer-link-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.drawer-link-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.drawer-link-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.drawer-link-desc {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+/* --------------------------------------------------------------------------
    10. Responsive Breakpoints
    -------------------------------------------------------------------------- */
 @media (min-width: 1025px) {
@@ -1339,48 +1596,18 @@ button {
     margin-top: 1px;
   }
 
-  /* Compact Tactile Side A / Side B Dual Switcher */
+  /* Mobile Header: Clean Brand on Left, Hamburger on Right */
   .side-switcher {
-    padding: 2px 3px;
-    gap: 2px;
-    flex-shrink: 0;
-    margin: 0 auto;
-  }
-
-  .side-btn {
-    padding: 4px 8px;
-    font-size: 0.65rem;
-    gap: 4px;
-    letter-spacing: 0.03em;
-  }
-
-  .side-indicator-dot {
-    width: 5px;
-    height: 5px;
-  }
-
-  .side-desc {
-    display: none;
-  }
-
-  .side-switcher-divider svg {
-    width: 12px;
-    height: 12px;
-  }
-
-  /* Hide QR Code button on mobile screens (the user is already on mobile!) */
-  .nav-actions {
-    gap: 4px;
-    flex-shrink: 0;
-  }
-
-  .nav-actions a[href*="qr"] {
     display: none !important;
   }
 
-  .theme-toggle {
-    width: 34px;
-    height: 34px;
+  .nav-actions {
+    display: none !important;
+  }
+
+  .mobile-menu-btn {
+    display: flex !important;
+  }
     padding: 6px;
   }
 
