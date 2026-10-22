@@ -10,16 +10,6 @@
     "description": ""
   },
   {
-    "id": 4,
-    "title": "Aura Studio Visual Identity",
-    "category": "Design",
-    "type": "image",
-    "side": "A",
-    "media_url": "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?w=1600&auto=format&fit=crop&q=85",
-    "thumbnail_url": "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?w=1000&auto=format&fit=crop&q=80",
-    "description": "Complete brand packaging, editorial typography, and minimalist design system."
-  },
-  {
     "id": 5,
     "title": "Midnight Echoes Short Film",
     "category": "Video Edits",
