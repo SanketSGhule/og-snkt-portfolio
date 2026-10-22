@@ -10,16 +10,6 @@
     "description": ""
   },
   {
-    "id": 6,
-    "title": "Solstice Music Fest 2024",
-    "category": "Posters",
-    "type": "image",
-    "side": "A",
-    "media_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1600&auto=format&fit=crop&q=85",
-    "thumbnail_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1000&auto=format&fit=crop&q=80",
-    "description": "Swiss-style experimental minimal gradient poster for an ambient music festival."
-  },
-  {
     "id": 7,
     "title": "Orbit Zero UI Design System",
     "category": "Design",
