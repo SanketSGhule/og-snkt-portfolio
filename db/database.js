@@ -264,7 +264,7 @@ function addItem({ title, description, category_id, file_path, thumbnail_path, f
   return getItemById(lastId.id);
 }
 
-function updateItem(id, { title, description, category_id, side }) {
+function updateItem(id, { title, description, category_id, side, thumbnail_path }) {
   const existing = getItemById(id);
   if (!existing) {
     return null;
@@ -276,12 +276,13 @@ function updateItem(id, { title, description, category_id, side }) {
   const updatedSide = side !== undefined 
     ? (['A', 'B', 'BOTH'].includes((side || '').toString().toUpperCase()) ? side.toString().toUpperCase() : (existing.side || 'BOTH'))
     : (existing.side || 'BOTH');
+  const updatedThumb = thumbnail_path !== undefined ? (thumbnail_path ? thumbnail_path.toString().trim() : null) : existing.thumbnail_path;
 
   db.run(`
     UPDATE items
-    SET title = ?, description = ?, category_id = ?, side = ?
+    SET title = ?, description = ?, category_id = ?, side = ?, thumbnail_path = ?
     WHERE id = ?
-  `, [updatedTitle, updatedDesc, updatedCatId, updatedSide, id]);
+  `, [updatedTitle, updatedDesc, updatedCatId, updatedSide, updatedThumb, id]);
 
   saveDb();
   return getItemById(id);
