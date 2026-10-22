@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OG.SNKT — Admin Panel</title>
-  <link rel="stylesheet" href="/css/style.css?v=2.1">
-  <link rel="stylesheet" href="/css/admin.css?v=2.1">
+  <link rel="stylesheet" href="/css/style.css?v=2.5">
+  <link rel="stylesheet" href="/css/admin.css?v=2.5">
 </head>
 <body>
   <!-- LOGIN SCREEN -->
@@ -42,19 +42,42 @@
 
     <!-- TAB: UPLOAD -->
     <div class="tab-content active" id="tab-upload">
-      <div class="upload-zone" id="uploadZone">
-        <div class="upload-icon">📁</div>
-        <p>Drag & drop files here or <label for="fileInput" class="upload-link">browse</label></p>
-        <input type="file" id="fileInput" multiple accept="image/*,video/*" hidden>
-        <p class="upload-hint">Supports images (JPG, PNG, WebP) and videos (MP4, MOV, WebM)</p>
+      <!-- Upload Mode Switcher -->
+      <div class="upload-mode-toggle">
+        <button type="button" class="upload-mode-btn active" id="modeBtnFile">📱 Upload from Phone</button>
+        <button type="button" class="upload-mode-btn" id="modeBtnUrl">🔗 Paste Media Link</button>
       </div>
-      <!-- Selected files preview -->
-      <div class="upload-preview" id="uploadPreview"></div>
-      <!-- Upload form fields -->
-      <div class="upload-form" id="uploadForm" style="display:none">
-        <input type="text" id="uploadTitle" placeholder="Title (required)" required>
-        <textarea id="uploadDesc" placeholder="Description (optional)" rows="3"></textarea>
+
+      <!-- Mode 1: File from Phone Gallery / Camera -->
+      <div id="fileUploadContainer">
+        <label for="fileInput" class="upload-zone" id="uploadZone">
+          <div class="upload-icon">📁</div>
+          <p>Tap here to pick photo or video from your phone</p>
+          <input type="file" id="fileInput" accept="image/*,video/*" style="position:absolute; opacity:0; width:0.1px; height:0.1px; overflow:hidden;">
+          <p class="upload-hint">Supports Photos (JPG, PNG, WebP) & Videos (MP4, MOV)</p>
+        </label>
+        <!-- Selected file preview -->
+        <div class="upload-preview" id="uploadPreview"></div>
+      </div>
+
+      <!-- Mode 2: Paste Direct URL -->
+      <div id="urlUploadContainer" style="display:none">
+        <div class="url-input-box">
+          <label class="form-label" style="font-weight:600;">Media URL (Image or Video MP4):</label>
+          <input type="url" id="uploadMediaUrl" placeholder="https://example.com/video.mp4 or image.jpg">
+          <label class="form-label" style="margin-top:10px; font-weight:600;">Thumbnail URL (Optional for videos):</label>
+          <input type="url" id="uploadThumbUrl" placeholder="https://example.com/thumbnail.jpg">
+        </div>
+      </div>
+
+      <!-- Form details -->
+      <div class="upload-form" id="uploadForm">
+        <input type="text" id="uploadTitle" placeholder="Project Title (required)" required>
+        <textarea id="uploadDesc" placeholder="Description / Narrative (optional)" rows="3"></textarea>
+        
+        <label class="form-label" style="font-weight:600; margin-top:4px;">Category:</label>
         <select id="uploadCategory"></select>
+
         <div class="form-group side-selector-group">
           <label class="form-label">Portfolio Side:</label>
           <div class="side-radio-group" id="uploadSideGroup">
@@ -64,18 +87,20 @@
             </label>
             <label class="side-radio-btn">
               <input type="radio" name="uploadSide" value="A">
-              <span>🅰 Side A (Minimal)</span>
+              <span>🅰 Side A (Silent)</span>
             </label>
             <label class="side-radio-btn">
               <input type="radio" name="uploadSide" value="B">
-              <span>🅱 Side B (Aggressive)</span>
+              <span>🅱 Side B (Overdrive)</span>
             </label>
           </div>
         </div>
-        <button class="btn-primary" id="uploadBtn">Upload</button>
+
+        <button class="btn-primary" id="uploadBtn">Publish to Portfolio</button>
         <div class="progress-bar" id="progressBar" style="display:none">
           <div class="progress-fill" id="progressFill"></div>
         </div>
+        <p class="upload-status-text" id="uploadStatusText" style="display:none"></p>
       </div>
     </div>
 
@@ -147,6 +172,6 @@
   <div class="toast" id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-  <script src="/js/admin.js?v=2.1"></script>
+  <script src="/js/admin.js?v=2.5"></script>
 </body>
 </html>
