@@ -10,16 +10,6 @@
     "description": ""
   },
   {
-    "id": 2,
-    "title": "Tokyo Cyberpunk 2099",
-    "category": "Posters",
-    "type": "image",
-    "side": "B",
-    "media_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=1600&auto=format&fit=crop&q=85",
-    "thumbnail_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=1000&auto=format&fit=crop&q=80",
-    "description": "Hyper-kinetic neo-brutalist typographic poster series with aggressive typography."
-  },
-  {
     "id": 3,
     "title": "Kinetic Quantum Abstract",
     "category": "Motion Graphics",
