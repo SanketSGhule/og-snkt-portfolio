@@ -179,7 +179,24 @@ async function fetchItems() {
     const data = await res.json();
 
     // Normalize response: array or object wrapper
-    const items = Array.isArray(data) ? data : (data.items || []);
+    let items = Array.isArray(data) ? data : (data.items || []);
+
+    // Merge any locally published items from mobile admin
+    try {
+      const local = localStorage.getItem('og_portfolio_items_local');
+      if (local) {
+        const localItems = JSON.parse(local);
+        if (Array.isArray(localItems) && localItems.length > 0) {
+          const ids = new Set(items.map(it => String(it.id)));
+          localItems.forEach(lit => {
+            if (!ids.has(String(lit.id))) {
+              items.unshift(lit);
+            }
+          });
+        }
+      }
+    } catch (e) {}
+
     if (items.length > 0) {
       return items.map(item => ({
         id: item.id || Math.random(),
@@ -195,6 +212,13 @@ async function fetchItems() {
     return FALLBACK_ITEMS;
   } catch (err) {
     console.warn('[OG.SNKT] /api/items unavailable, using curated showcase items:', err.message);
+    try {
+      const local = localStorage.getItem('og_portfolio_items_local');
+      if (local) {
+        const localItems = JSON.parse(local);
+        if (Array.isArray(localItems) && localItems.length > 0) return localItems;
+      }
+    } catch (e) {}
     return FALLBACK_ITEMS;
   }
 }
