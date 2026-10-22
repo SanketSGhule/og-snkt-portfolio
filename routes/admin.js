@@ -214,13 +214,13 @@ router.post('/upload', upload.array('files', 10), async (req, res) => {
 router.put('/items/:id', (req, res) => {
   try {
     const id = req.params.id;
-    const { title, description, category_id, side } = req.body;
+    const { title, description, category_id, side, thumbnail_path } = req.body;
 
     if (title !== undefined && (!title || !title.trim())) {
       return res.status(400).json({ error: 'Title cannot be empty' });
     }
 
-    const updated = updateItem(id, { title, description, category_id, side });
+    const updated = updateItem(id, { title, description, category_id, side, thumbnail_path });
     if (!updated) {
       return res.status(404).json({ error: 'Item not found' });
     }
