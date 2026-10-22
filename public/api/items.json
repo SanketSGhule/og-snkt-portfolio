@@ -10,16 +10,6 @@
     "description": ""
   },
   {
-    "id": 1,
-    "title": "Neon Drift Cinematic Reel",
-    "category": "Video Edits",
-    "type": "video",
-    "side": "B",
-    "media_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    "thumbnail_url": "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1000&auto=format&fit=crop&q=80",
-    "description": "High-energy cyberpunk speed cut featuring dynamic speed-ramps and custom sound design."
-  },
-  {
     "id": 2,
     "title": "Tokyo Cyberpunk 2099",
     "category": "Posters",
