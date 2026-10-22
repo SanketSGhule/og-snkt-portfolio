@@ -15,7 +15,7 @@
   <!-- CDN Stylesheets -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
-  <link rel="stylesheet" href="/css/style.css?v=2.5">
+  <link rel="stylesheet" href="/css/style.css?v=2.6">
 </head>
 <body>
   <!-- Cinematic Tape Flip / Mode Transition Overlay -->
@@ -47,14 +47,12 @@
           <span class="side-tag">SIDE A</span>
           <span class="side-desc">SILENT BLUE</span>
         </button>
-        <div class="side-switcher-divider">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="17 1 21 5 17 9"></polyline>
-            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-            <polyline points="7 23 3 19 7 15"></polyline>
-            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+        <button class="side-btn-both" id="btnSideBoth" data-side="ALL" aria-checked="false" title="Show Both Sides (Combined Works)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="12" r="5"></circle>
+            <circle cx="15" cy="12" r="5"></circle>
           </svg>
-        </div>
+        </button>
         <button class="side-btn" id="btnSideB" data-side="B" aria-checked="false" title="Switch to Side B: Aggressive Red Overdrive">
           <span class="side-indicator-dot"></span>
           <span class="side-tag">SIDE B</span>
@@ -395,6 +393,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-  <script src="/js/portfolio.js?v=2.5"></script>
+  <script src="/js/portfolio.js?v=2.6"></script>
 </body>
 </html>
