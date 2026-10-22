@@ -325,6 +325,28 @@ const DOM = {
   editCategory: document.getElementById('editCategory'),
   editCancel: document.getElementById('editCancel'),
   editSave: document.getElementById('editSave'),
+  editVideoThumbGroup: document.getElementById('editVideoThumbGroup'),
+  editThumbPreviewBox: document.getElementById('editThumbPreviewBox'),
+  editThumbPreviewImg: document.getElementById('editThumbPreviewImg'),
+  editThumbPlaceholder: document.getElementById('editThumbPlaceholder'),
+  editCaptureVideoBtn: document.getElementById('editCaptureVideoBtn'),
+  editCustomThumbUrl: document.getElementById('editCustomThumbUrl'),
+
+  // Video Thumbnail Modal
+  videoThumbModal: document.getElementById('videoThumbModal'),
+  videoThumbCloseBtn: document.getElementById('videoThumbCloseBtn'),
+  videoThumbCancel: document.getElementById('videoThumbCancel'),
+  videoThumbSaveBtn: document.getElementById('videoThumbSaveBtn'),
+  videoThumbItemTitle: document.getElementById('videoThumbItemTitle'),
+  thumbVideoPlayer: document.getElementById('thumbVideoPlayer'),
+  videoThumbTimecode: document.getElementById('videoThumbTimecode'),
+  videoScrubberSlider: document.getElementById('videoScrubberSlider'),
+  thumbCaptureCanvas: document.getElementById('thumbCaptureCanvas'),
+  thumbCapturePreviewImg: document.getElementById('thumbCapturePreviewImg'),
+  capturedFrameBadge: document.getElementById('capturedFrameBadge'),
+  videoThumbStatus: document.getElementById('videoThumbStatus'),
+  btnStepBack: document.getElementById('btnStepBack'),
+  btnStepFwd: document.getElementById('btnStepFwd'),
 
   // Toast
   toast: document.getElementById('toast')
@@ -1200,27 +1222,28 @@ function renderManageGrid() {
     card.className = 'manage-card';
     card.setAttribute('data-id', item.id);
 
-    const isVideo = item.file_type === 'video' || (item.file_path && item.file_path.match(/\.(mp4|webm|mov|mkv|m4v)$/i));
-    const thumbSrc = item.thumbnail_path || item.file_path || '';
+    const isVideo = item.file_type === 'video' || item.type === 'video' || (item.file_path && item.file_path.match(/\.(mp4|webm|mov|mkv|m4v)$/i)) || (item.media_url && item.media_url.match(/\.(mp4|webm|mov|mkv|m4v)$/i));
+    const thumbSrc = item.thumbnail_path || item.thumbnail_url || item.thumbnail || '';
+    const videoSrc = item.file_path || item.media_url || '';
     const categoryName = item.category_name || item.category || 'Uncategorized';
     const sideText = (item.side || 'BOTH') === 'BOTH' ? 'A & B' : `SIDE ${item.side}`;
     const sideClass = (item.side || 'both').toLowerCase();
 
     let mediaElement = '';
     if (isVideo) {
-      if (item.thumbnail_path) {
+      if (thumbSrc && !thumbSrc.match(/\.(mp4|webm|mov|mkv|m4v)$/i)) {
         mediaElement = `
-          <img src="${escapeHtml(item.thumbnail_path)}" alt="${escapeHtml(item.title)}" loading="lazy">
+          <img src="${escapeHtml(thumbSrc)}" alt="${escapeHtml(item.title)}" loading="lazy">
           <span class="manage-media-badge">VIDEO</span>
         `;
       } else {
         mediaElement = `
-          <video src="${escapeHtml(item.file_path)}" muted preload="metadata"></video>
+          <video src="${escapeHtml(videoSrc)}" muted preload="metadata"></video>
           <span class="manage-media-badge">VIDEO</span>
         `;
       }
     } else {
-      mediaElement = `<img src="${escapeHtml(thumbSrc)}" alt="${escapeHtml(item.title)}" loading="lazy">`;
+      mediaElement = `<img src="${escapeHtml(thumbSrc || item.file_path || item.media_url || '')}" alt="${escapeHtml(item.title)}" loading="lazy">`;
     }
 
     card.innerHTML = `
@@ -1228,11 +1251,13 @@ function renderManageGrid() {
         <input type="checkbox" class="item-checkbox" data-id="${item.id}" title="Select for bulk actions">
       </div>
       <div class="manage-card-actions">
+        ${isVideo ? `<button class="card-action-btn capture-btn" title="Pick thumbnail from video">📸</button>` : ''}
         <button class="card-action-btn edit-btn" title="Edit item">✏️</button>
         <button class="card-action-btn del-btn" title="Delete item">🗑️</button>
       </div>
       <div class="manage-thumb-wrap">
         ${mediaElement}
+        ${isVideo ? `<button type="button" class="manage-thumb-pill-btn" title="Extract thumbnail from video">📸 Video Thumbnail</button>` : ''}
       </div>
       <div class="manage-card-info">
         <div class="manage-card-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</div>
@@ -1255,6 +1280,18 @@ function renderManageGrid() {
       }
       updateBulkDeleteState();
     });
+
+    // Video thumbnail capture button clicks
+    if (isVideo) {
+      const captureBtn = card.querySelector('.capture-btn');
+      const pillBtn = card.querySelector('.manage-thumb-pill-btn');
+      const handleCapture = (e) => {
+        e.stopPropagation();
+        openVideoThumbModal(item);
+      };
+      if (captureBtn) captureBtn.addEventListener('click', handleCapture);
+      if (pillBtn) pillBtn.addEventListener('click', handleCapture);
+    }
 
     // Edit button click
     const editBtn = card.querySelector('.edit-btn');
@@ -1396,6 +1433,40 @@ function openEditModal(item) {
   const sideRadio = document.querySelector(`input[name="editSide"][value="${currentSide}"]`);
   if (sideRadio) sideRadio.checked = true;
 
+  const isVideo = item.file_type === 'video' || item.type === 'video' || (item.file_path && item.file_path.match(/\.(mp4|webm|mov|mkv|m4v)$/i)) || (item.media_url && item.media_url.match(/\.(mp4|webm|mov|mkv|m4v)$/i));
+  if (DOM.editVideoThumbGroup) {
+    if (isVideo) {
+      DOM.editVideoThumbGroup.style.display = 'block';
+      const thumb = item.thumbnail_path || item.thumbnail_url || '';
+      if (thumb && !thumb.match(/\.(mp4|webm|mov|mkv|m4v)$/i)) {
+        if (DOM.editThumbPreviewImg) {
+          DOM.editThumbPreviewImg.src = thumb;
+          DOM.editThumbPreviewImg.style.display = 'block';
+        }
+        if (DOM.editThumbPlaceholder) DOM.editThumbPlaceholder.style.display = 'none';
+      } else {
+        if (DOM.editThumbPreviewImg) DOM.editThumbPreviewImg.style.display = 'none';
+        if (DOM.editThumbPlaceholder) DOM.editThumbPlaceholder.style.display = 'block';
+      }
+      if (DOM.editCustomThumbUrl) DOM.editCustomThumbUrl.value = (thumb && !thumb.match(/\.(mp4|webm|mov|mkv|m4v)$/i)) ? thumb : '';
+    } else {
+      DOM.editVideoThumbGroup.style.display = 'none';
+    }
+  }
+
+  if (DOM.editCaptureVideoBtn) {
+    DOM.editCaptureVideoBtn.onclick = () => {
+      openVideoThumbModal(item, (newThumbUrl) => {
+        if (DOM.editThumbPreviewImg) {
+          DOM.editThumbPreviewImg.src = newThumbUrl;
+          DOM.editThumbPreviewImg.style.display = 'block';
+        }
+        if (DOM.editThumbPlaceholder) DOM.editThumbPlaceholder.style.display = 'none';
+        if (DOM.editCustomThumbUrl) DOM.editCustomThumbUrl.value = newThumbUrl;
+      });
+    };
+  }
+
   DOM.editModal.style.display = 'flex';
   if (DOM.editTitle) DOM.editTitle.focus();
 }
@@ -1422,8 +1493,12 @@ function initModalHandlers() {
 
   // Close modal on Escape key
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && DOM.editModal && DOM.editModal.style.display === 'flex') {
-      closeEditModal();
+    if (e.key === 'Escape') {
+      if (DOM.videoThumbModal && DOM.videoThumbModal.style.display === 'flex') {
+        closeVideoThumbModal();
+      } else if (DOM.editModal && DOM.editModal.style.display === 'flex') {
+        closeEditModal();
+      }
     }
   });
 
@@ -1450,12 +1525,30 @@ function initModalHandlers() {
       DOM.editSave.textContent = 'Saving...';
 
       try {
-        await editItemDirect(STATE.currentEditingItemId, {
+        const updates = {
           title,
           description,
           category: categoryIdVal || 'Video Edits',
           side
-        });
+        };
+
+        const customThumb = DOM.editCustomThumbUrl ? DOM.editCustomThumbUrl.value.trim() : '';
+        if (customThumb) {
+          updates.thumbnail_url = customThumb;
+          updates.thumbnail_path = customThumb;
+        }
+
+        await editItemDirect(STATE.currentEditingItemId, updates);
+
+        try {
+          await apiCall(`/api/admin/items/${STATE.currentEditingItemId}`, 'PUT', {
+            title,
+            description,
+            category_id,
+            side,
+            thumbnail_path: updates.thumbnail_path
+          });
+        } catch (e) {}
 
         showToast('Item updated successfully', 'success');
         closeEditModal();
@@ -1466,6 +1559,273 @@ function initModalHandlers() {
         if (DOM.editSave) {
           DOM.editSave.disabled = false;
           DOM.editSave.textContent = 'Save';
+        }
+      }
+    });
+  }
+}
+
+// =============================================================================
+// 9.5 Video Thumbnail Frame Capturer
+// =============================================================================
+let currentVideoThumbItem = null;
+let currentVideoThumbCallback = null;
+
+function formatTime(seconds) {
+  if (isNaN(seconds) || seconds < 0) return '00:00.0';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  const ms = Math.floor((seconds % 1) * 10);
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${ms}`;
+}
+
+async function openVideoThumbModal(item, onSavedCallback = null) {
+  currentVideoThumbItem = item;
+  currentVideoThumbCallback = onSavedCallback;
+
+  const modal = DOM.videoThumbModal;
+  if (!modal) return;
+
+  const video = DOM.thumbVideoPlayer;
+  const slider = DOM.videoScrubberSlider;
+  const titleElem = DOM.videoThumbItemTitle;
+  const timecodeElem = DOM.videoThumbTimecode;
+  const statusElem = DOM.videoThumbStatus;
+  const saveBtn = DOM.videoThumbSaveBtn;
+  const canvas = DOM.thumbCaptureCanvas;
+  const previewImg = DOM.thumbCapturePreviewImg;
+  const badge = DOM.capturedFrameBadge;
+
+  if (titleElem) titleElem.textContent = `Scrub through "${item.title || 'Video'}" to pick the best frame as thumbnail.`;
+  if (statusElem) { statusElem.style.display = 'none'; statusElem.textContent = ''; }
+  if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 Save as Item Thumbnail'; }
+  if (previewImg) previewImg.style.display = 'none';
+  if (badge) badge.textContent = 'Loading video stream...';
+
+  modal.style.display = 'flex';
+
+  const videoUrl = item.file_path || item.media_url || '';
+  if (!videoUrl) {
+    showToast('Video URL missing for this item', 'error');
+    closeVideoThumbModal();
+    return;
+  }
+
+  video.crossOrigin = 'anonymous';
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = 'auto';
+
+  // Revoke previous blob if any
+  if (video._blobUrl) {
+    URL.revokeObjectURL(video._blobUrl);
+    video._blobUrl = null;
+  }
+
+  // Attempt fetch as blob if GitHub raw or local upload to guarantee clean canvas without CORS taint
+  try {
+    const token = localStorage.getItem('og_gh_token') || GITHUB_CONFIG.token;
+    const headers = {};
+    if (token && videoUrl.includes('github')) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(videoUrl, { headers });
+    if (res.ok) {
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      video._blobUrl = blobUrl;
+      video.src = blobUrl;
+    } else {
+      video.src = videoUrl;
+    }
+  } catch (e) {
+    video.src = videoUrl;
+  }
+
+  // Metadata loaded -> configure slider & seek
+  video.onloadedmetadata = () => {
+    const duration = video.duration || 10;
+    if (slider) {
+      slider.min = '0';
+      slider.max = String(duration);
+      slider.step = String(Math.max(0.02, duration / 500));
+      const initialTime = Math.min(1.0, duration / 2);
+      slider.value = String(initialTime);
+      video.currentTime = initialTime;
+    }
+    if (timecodeElem) {
+      timecodeElem.textContent = `${formatTime(video.currentTime)} / ${formatTime(duration)}`;
+    }
+  };
+
+  // Video seeked -> capture frame to canvas & update preview
+  video.onseeked = () => {
+    try {
+      if (!canvas || !previewImg) return;
+      canvas.width = Math.min(video.videoWidth || 640, 1280);
+      canvas.height = Math.min(video.videoHeight || 360, 720);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+      previewImg.src = dataUrl;
+      previewImg.style.display = 'block';
+      if (badge) {
+        badge.textContent = `${canvas.width}×${canvas.height} @ ${formatTime(video.currentTime)}`;
+      }
+    } catch (err) {
+      console.warn('Frame capture notice:', err);
+      if (badge) badge.textContent = 'Frame ready';
+    }
+    if (timecodeElem) {
+      timecodeElem.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration || 0)}`;
+    }
+  };
+
+  video.onerror = (e) => {
+    console.error('Video error:', e);
+    if (badge) badge.textContent = 'Error loading video';
+    showToast('Failed to load video stream', 'error');
+  };
+}
+
+function closeVideoThumbModal() {
+  if (!DOM.videoThumbModal) return;
+  DOM.videoThumbModal.style.display = 'none';
+  if (DOM.thumbVideoPlayer) {
+    DOM.thumbVideoPlayer.pause();
+    DOM.thumbVideoPlayer.removeAttribute('src');
+    DOM.thumbVideoPlayer.load();
+    if (DOM.thumbVideoPlayer._blobUrl) {
+      URL.revokeObjectURL(DOM.thumbVideoPlayer._blobUrl);
+      DOM.thumbVideoPlayer._blobUrl = null;
+    }
+  }
+  currentVideoThumbItem = null;
+  currentVideoThumbCallback = null;
+}
+
+function initVideoThumbModalHandlers() {
+  const modal = DOM.videoThumbModal;
+  const closeBtn = DOM.videoThumbCloseBtn;
+  const cancelBtn = DOM.videoThumbCancel;
+  const saveBtn = DOM.videoThumbSaveBtn;
+  const slider = DOM.videoScrubberSlider;
+  const video = DOM.thumbVideoPlayer;
+  const canvas = DOM.thumbCaptureCanvas;
+  const statusElem = DOM.videoThumbStatus;
+
+  if (closeBtn) closeBtn.addEventListener('click', closeVideoThumbModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeVideoThumbModal);
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeVideoThumbModal();
+    });
+  }
+
+  // Scrubber slider input
+  if (slider && video) {
+    slider.addEventListener('input', () => {
+      const targetTime = parseFloat(slider.value);
+      if (!isNaN(targetTime)) {
+        video.currentTime = targetTime;
+      }
+    });
+  }
+
+  // Quick preset buttons
+  document.querySelectorAll('#videoThumbModal .preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!video) return;
+      const duration = video.duration || 0;
+      if (btn.hasAttribute('data-time')) {
+        const time = parseFloat(btn.getAttribute('data-time'));
+        video.currentTime = Math.min(time, duration);
+        if (slider) slider.value = String(video.currentTime);
+      } else if (btn.hasAttribute('data-pct')) {
+        const pct = parseFloat(btn.getAttribute('data-pct')) / 100;
+        video.currentTime = duration * pct;
+        if (slider) slider.value = String(video.currentTime);
+      }
+    });
+  });
+
+  // Step buttons
+  if (DOM.btnStepBack && video) {
+    DOM.btnStepBack.addEventListener('click', () => {
+      video.currentTime = Math.max(0, video.currentTime - 0.5);
+      if (slider) slider.value = String(video.currentTime);
+    });
+  }
+  if (DOM.btnStepFwd && video) {
+    DOM.btnStepFwd.addEventListener('click', () => {
+      video.currentTime = Math.min(video.duration || 0, video.currentTime + 0.5);
+      if (slider) slider.value = String(video.currentTime);
+    });
+  }
+
+  // Save button
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+      if (!currentVideoThumbItem || !canvas) return;
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Capturing & saving...';
+      if (statusElem) {
+        statusElem.style.display = 'block';
+        statusElem.textContent = 'Uploading captured frame to portfolio...';
+      }
+
+      try {
+        // 1. Get base64 data from canvas
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+        const base64 = dataUrl.split(',')[1];
+        if (!base64) throw new Error('Could not capture frame from canvas');
+
+        // 2. Upload thumbnail file to GitHub
+        const filename = `thumb_${currentVideoThumbItem.id}_${Date.now()}.jpg`;
+        const uploadResult = await uploadBase64ToGitHub(base64, filename);
+        const newThumbUrl = uploadResult.cdnUrl;
+
+        // 3. Update items.json
+        await editItemDirect(currentVideoThumbItem.id, {
+          thumbnail_url: newThumbUrl,
+          thumbnail_path: newThumbUrl
+        });
+
+        // 4. Update local state
+        currentVideoThumbItem.thumbnail_url = newThumbUrl;
+        currentVideoThumbItem.thumbnail_path = newThumbUrl;
+
+        const match = STATE.items.find(it => String(it.id) === String(currentVideoThumbItem.id));
+        if (match) {
+          match.thumbnail_url = newThumbUrl;
+          match.thumbnail_path = newThumbUrl;
+        }
+
+        // Try backend sync if running server
+        try {
+          await apiCall(`/api/admin/items/${currentVideoThumbItem.id}`, 'PUT', { thumbnail_path: newThumbUrl });
+        } catch (e) {}
+
+        if (typeof currentVideoThumbCallback === 'function') {
+          currentVideoThumbCallback(newThumbUrl);
+        }
+
+        showToast('Thumbnail updated from video!', 'success');
+        closeVideoThumbModal();
+        renderManageGrid();
+      } catch (err) {
+        console.error('Error saving video thumbnail:', err);
+        showToast(err.message || 'Failed to save video thumbnail', 'error');
+        if (statusElem) {
+          statusElem.style.display = 'block';
+          statusElem.textContent = 'Error: ' + (err.message || 'Failed to save');
+        }
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = '💾 Save as Item Thumbnail';
         }
       }
     });
@@ -1519,6 +1879,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initManageHandlers();
   initCategoryAddHandler();
   initModalHandlers();
+  initVideoThumbModalHandlers();
 
   // Validate active session
   checkAuth();
