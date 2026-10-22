@@ -10,16 +10,6 @@
     "description": ""
   },
   {
-    "id": 7,
-    "title": "Orbit Zero UI Design System",
-    "category": "Design",
-    "type": "image",
-    "side": "A",
-    "media_url": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=1600&auto=format&fit=crop&q=85",
-    "thumbnail_url": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=1000&auto=format&fit=crop&q=80",
-    "description": "Pure editorial interface design system for aerospace telemetry."
-  },
-  {
     "id": 8,
     "title": "Chrome Horizons 3D Loop",
     "category": "Motion Graphics",
