@@ -1621,6 +1621,17 @@ button {
     display: none !important;
   }
 
+  .side-btn-both {
+    width: 24px;
+    height: 24px;
+    margin: 0 1px;
+  }
+
+  .side-btn-both svg {
+    width: 13px;
+    height: 13px;
+  }
+
   .side-switcher-divider svg {
     width: 12px;
     height: 12px;
@@ -1898,6 +1909,49 @@ button {
   --glow-3: #f87171;
 }
 
+/* Side ALL: Dual Archive Spectrum Fusion (Cosmic Violet & Indigo) */
+[data-mode="side-all"] {
+  --accent: #a855f7;             /* Cosmic violet / dual spectrum */
+  --accent-hover: #c084fc;
+  --accent-alt: #ec4899;         /* Vibrant magenta */
+  --accent-rgb: 168, 85, 247;
+  --plyr-color-main: #a855f7;
+
+  --bg-primary: #0a0818;         /* Deep dual cosmic midnight */
+  --bg-secondary: #121028;       /* Deep purple-indigo navy */
+  --bg-card: #181534;            /* Dual tinted glass card */
+  --bg-card-hover: #221d46;
+  --border: rgba(168, 85, 247, 0.28);
+  --shadow: rgba(4, 2, 12, 0.75);
+  --nav-bg: rgba(10, 8, 24, 0.92);
+  --filter-bg: rgba(18, 16, 40, 0.95);
+
+  --glow-1: #7c75ff;             /* Celestial blue */
+  --glow-2: #a855f7;             /* Cosmic violet */
+  --glow-3: #ff003c;             /* Overdrive red */
+  --glow-opacity: 0.06;
+  --grid-line: rgba(168, 85, 247, 0.06);
+
+  --mode-accent: #a855f7;
+  --mode-accent-rgb: 168, 85, 247;
+  --mode-glow: none;
+  --mode-border: rgba(168, 85, 247, 0.55);
+  --mode-badge-bg: rgba(168, 85, 247, 0.16);
+}
+
+[data-theme="light"][data-mode="side-all"] {
+  --bg-primary: #faf5ff;
+  --bg-secondary: #f3e8ff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fdf4ff;
+  --border: rgba(168, 85, 247, 0.25);
+  --accent: #9333ea;
+  --accent-hover: #7e22ce;
+  --glow-1: #c084fc;
+  --glow-2: #f472b6;
+  --glow-3: #a855f7;
+}
+
 /* --------------------------------------------------------------------------
    Tactile Side A / Side B Dual Switcher
    -------------------------------------------------------------------------- */
@@ -1920,6 +1974,11 @@ button {
 
 [data-mode="side-b"] .side-switcher {
   border-color: rgba(255, 0, 60, 0.55);
+}
+
+[data-mode="side-all"] .side-switcher {
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.25);
 }
 
 .side-btn {
@@ -1988,13 +2047,60 @@ button {
   opacity: 1;
 }
 
-.side-switcher-divider {
-  display: flex;
+/* Circular Both-Sides Switcher Button (Center of Side A & Side B) */
+.side-btn-both {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
-  opacity: 0.5;
-  padding: 0 2px;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 2px;
+  flex-shrink: 0;
+  transition: all 0.28s var(--ease-smooth);
+  position: relative;
+  outline: none;
+}
+
+.side-btn-both svg {
+  transition: transform 0.28s ease, stroke 0.28s ease;
+}
+
+.side-btn-both:hover {
+  color: #ffffff;
+  border-color: rgba(168, 85, 247, 0.65);
+  background: rgba(168, 85, 247, 0.22);
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.45);
+  transform: scale(1.1);
+}
+
+.side-btn-both:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Side ALL Active State on Center Circular Button */
+.side-btn-both.active,
+[data-mode="side-all"] #btnSideBoth {
+  background: linear-gradient(135deg, #7c75ff 0%, #ec4899 100%);
+  border-color: #f472b6;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(236, 72, 153, 0.6), 0 0 6px rgba(124, 117, 255, 0.5);
+  transform: scale(1.06);
+}
+
+.side-btn-both.active svg,
+[data-mode="side-all"] #btnSideBoth svg {
+  stroke: #ffffff;
+}
+
+.side-switcher-divider {
+  display: none;
 }
 
 /* --------------------------------------------------------------------------
@@ -2022,6 +2128,10 @@ button {
 
 .side-transition-overlay[data-target-side="B"] {
   background: rgba(14, 2, 5, 0.95);
+}
+
+.side-transition-overlay[data-target-side="ALL"] {
+  background: rgba(10, 8, 24, 0.95);
 }
 
 .side-transition-overlay.active {
@@ -2061,6 +2171,11 @@ button {
 .side-transition-overlay[data-target-side="B"] .glitch-flash-bar {
   background: #ff003c;
   box-shadow: 0 0 16px #ff003c;
+}
+
+.side-transition-overlay[data-target-side="ALL"] .glitch-flash-bar {
+  background: linear-gradient(90deg, #7c75ff, #ec4899);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.9);
 }
 
 .side-transition-overlay.active .glitch-flash-bar {
@@ -2103,6 +2218,12 @@ button {
   color: #ff3355;
 }
 
+.side-transition-overlay[data-target-side="ALL"] .trans-mode-badge {
+  background: rgba(168, 85, 247, 0.22);
+  border: 1px solid rgba(168, 85, 247, 0.6);
+  color: #d8b4fe;
+}
+
 .glitch-text {
   font-family: var(--font-heading);
   font-size: clamp(1.4rem, 4.2vw, 2.7rem);
@@ -2122,6 +2243,10 @@ button {
   text-shadow: -2px 0 #ff4500, 2px 0 #ff003c;
 }
 
+.side-transition-overlay[data-target-side="ALL"] .glitch-text {
+  text-shadow: -2px 0 #7c75ff, 2px 0 #ff003c;
+}
+
 .trans-mode-desc {
   font-family: var(--font-body);
   font-size: clamp(0.75rem, 1.8vw, 0.94rem);
@@ -2137,6 +2262,10 @@ button {
 
 .side-transition-overlay[data-target-side="B"] .trans-mode-desc {
   color: #ff8599;
+}
+
+.side-transition-overlay[data-target-side="ALL"] .trans-mode-desc {
+  color: #f472b6;
 }
 
 .trans-meter {
@@ -2165,6 +2294,10 @@ button {
 
 .side-transition-overlay[data-target-side="B"] .trans-meter-bar {
   background: linear-gradient(90deg, #ff4500, #ff003c, #ff2a55);
+}
+
+.side-transition-overlay[data-target-side="ALL"] .trans-meter-bar {
+  background: linear-gradient(90deg, #7c75ff, #a855f7, #ff003c);
 }
 
 .side-transition-overlay.active .trans-mode-badge,
@@ -2379,5 +2512,109 @@ button {
   25% { transform: translateY(-5px) scale(1.025) skewX(-0.6deg); }
   50% { transform: translateY(-3px) scale(1.02) skewX(0.6deg); }
   100% { transform: translateY(-4px) scale(1.02); }
+}
+
+/* --------------------------------------------------------------------------
+   Side ALL Specifics & Dual Spectrum Grid
+   -------------------------------------------------------------------------- */
+[data-mode="side-all"] .hero-title {
+  background: linear-gradient(135deg, #ffffff 10%, #c084fc 45%, #f472b6 85%, #ff3355 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.01em;
+}
+
+[data-mode="side-all"] .hero-tag {
+  background: rgba(168, 85, 247, 0.16);
+  border-color: rgba(168, 85, 247, 0.5);
+  color: #d8b4fe;
+}
+
+[data-mode="side-all"] .hud-reticle {
+  border-color: #a855f7;
+}
+
+[data-mode="side-all"] .meter-bar {
+  background: linear-gradient(to top, #7c75ff, #a855f7, #ec4899);
+}
+
+[data-mode="side-all"] .floating-badge {
+  background: rgba(18, 16, 40, 0.88);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 12px 32px rgba(10, 8, 22, 0.6);
+}
+
+[data-mode="side-all"] .floating-badge:hover {
+  border-color: #c084fc;
+  box-shadow: 0 16px 36px rgba(10, 8, 22, 0.8);
+}
+
+[data-mode="side-all"] .badge-pill {
+  background: rgba(168, 85, 247, 0.22);
+  color: #e9d5ff;
+}
+
+[data-mode="side-all"] .filter-btn:hover {
+  border-color: #a855f7;
+  background: rgba(168, 85, 247, 0.14);
+}
+
+[data-mode="side-all"] .filter-btn.active {
+  background: linear-gradient(135deg, #7c75ff 0%, #a855f7 50%, #ec4899 100%);
+  border-color: #c084fc;
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(168, 85, 247, 0.4);
+}
+
+[data-mode="side-all"] .grid-item {
+  border-color: rgba(168, 85, 247, 0.22);
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s ease, border-color 0.35s ease;
+}
+
+[data-mode="side-all"] .grid-item:hover {
+  transform: translateY(-6px);
+  border-color: rgba(192, 132, 252, 0.65);
+  box-shadow: 0 18px 45px rgba(12, 10, 26, 0.75);
+}
+
+[data-mode="side-all"] .item-category-tag {
+  color: #d8b4fe;
+}
+
+/* Side indicator badges inside items */
+.item-tags-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.item-side-badge {
+  font-family: var(--font-heading);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.item-side-badge.side-tag-a {
+  background: rgba(124, 117, 255, 0.2);
+  border: 1px solid rgba(124, 117, 255, 0.5);
+  color: #c084fc;
+}
+
+.item-side-badge.side-tag-b {
+  background: rgba(255, 0, 60, 0.2);
+  border: 1px solid rgba(255, 0, 60, 0.55);
+  color: #ff5577;
+}
+
+.item-side-badge.side-tag-both {
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.55);
+  color: #d8b4fe;
 }
 
