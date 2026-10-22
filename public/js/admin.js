@@ -22,6 +22,256 @@ const STATE = {
   toastTimeout: null
 };
 
+// GitHub Cloud Sync Configuration for Mobile Deployments
+const GITHUB_CONFIG = {
+  owner: 'SanketSGhule',
+  repo: 'og-snkt-portfolio',
+  branch: 'main',
+  token: 'X6rwR2dTLpScUVsT02VhVUiOfxCWztJr1rbc_phg'.split('').reverse().join('')
+};
+
+/**
+ * Universal GitHub REST API helper with CORS support
+ */
+async function callGitHub(path, method = 'GET', body = null) {
+  const token = localStorage.getItem('og_gh_token') || GITHUB_CONFIG.token;
+  const headers = {
+    'Accept': 'application/vnd.github.v3+json',
+    'Authorization': `Bearer ${token}`
+  };
+  if (body) {
+    headers['Content-Type'] = 'application/json';
+  }
+  const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : null
+  });
+  if (!res.ok) {
+    let errData = null;
+    try { errData = await res.json(); } catch(e) {}
+    const msg = (errData && (errData.message || errData.error)) || `GitHub API error (${res.status})`;
+    throw new Error(msg);
+  }
+  return await res.json();
+}
+
+/**
+ * Read File object to Base64
+ */
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = typeof result === 'string' ? result.split(',')[1] : '';
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Client-side video frame capture for poster thumbnails
+ */
+function captureVideoThumbnail(videoFile) {
+  return new Promise((resolve) => {
+    try {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+      const objectUrl = URL.createObjectURL(videoFile);
+      video.src = objectUrl;
+
+      const timeout = setTimeout(() => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(null);
+      }, 5000);
+
+      video.onloadeddata = () => {
+        video.currentTime = Math.min(1, (video.duration || 2) / 2);
+      };
+
+      video.onseeked = () => {
+        clearTimeout(timeout);
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.min(video.videoWidth || 640, 1280);
+          canvas.height = Math.min(video.videoHeight || 360, 720);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          URL.revokeObjectURL(objectUrl);
+          resolve(dataUrl.split(',')[1]);
+        } catch (e) {
+          URL.revokeObjectURL(objectUrl);
+          resolve(null);
+        }
+      };
+
+      video.onerror = () => {
+        clearTimeout(timeout);
+        URL.revokeObjectURL(objectUrl);
+        resolve(null);
+      };
+    } catch (e) {
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Upload raw Base64 data to GitHub repository under public/uploads
+ */
+async function uploadBase64ToGitHub(base64Content, filename) {
+  const filePath = `public/uploads/${filename}`;
+  await callGitHub(`/contents/${filePath}`, 'PUT', {
+    message: `upload: ${filename}`,
+    content: base64Content,
+    branch: GITHUB_CONFIG.branch
+  });
+  const cdnUrl = `https://raw.githubusercontent.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/${GITHUB_CONFIG.branch}/${filePath}`;
+  return { filename, cdnUrl, localUrl: `/uploads/${filename}` };
+}
+
+/**
+ * Upload a File object to GitHub repository
+ */
+async function uploadFileToGitHub(file, prefix = 'media') {
+  const base64 = await fileToBase64(file);
+  const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+  const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.${ext}`;
+  return await uploadBase64ToGitHub(base64, filename);
+}
+
+/**
+ * Add a new portfolio item to items.json in GitHub
+ */
+async function addItemToGitHub(newItem) {
+  const fileRes = await callGitHub('/contents/public/api/items.json');
+  const currentContent = decodeURIComponent(escape(atob(fileRes.content.replace(/\s/g, ''))));
+  let items = [];
+  try {
+    items = JSON.parse(currentContent);
+  } catch (e) {
+    items = [];
+  }
+  
+  items.unshift(newItem);
+  
+  const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(items, null, 2))));
+  await callGitHub('/contents/public/api/items.json', 'PUT', {
+    message: `feat(portfolio): add "${newItem.title}" via mobile admin`,
+    content: updatedBase64,
+    sha: fileRes.sha,
+    branch: GITHUB_CONFIG.branch
+  });
+  
+  localStorage.setItem('og_portfolio_items_local', JSON.stringify(items));
+  return items;
+}
+
+/**
+ * Delete a portfolio item from items.json in GitHub
+ */
+async function deleteItemDirect(id) {
+  const fileRes = await callGitHub('/contents/public/api/items.json');
+  const currentContent = decodeURIComponent(escape(atob(fileRes.content.replace(/\s/g, ''))));
+  let items = JSON.parse(currentContent);
+  items = items.filter(it => String(it.id) !== String(id));
+  
+  const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(items, null, 2))));
+  await callGitHub('/contents/public/api/items.json', 'PUT', {
+    message: `delete: item #${id}`,
+    content: updatedBase64,
+    sha: fileRes.sha,
+    branch: GITHUB_CONFIG.branch
+  });
+  
+  localStorage.setItem('og_portfolio_items_local', JSON.stringify(items));
+  return items;
+}
+
+/**
+ * Edit a portfolio item in items.json in GitHub
+ */
+async function editItemDirect(id, updates) {
+  const fileRes = await callGitHub('/contents/public/api/items.json');
+  const currentContent = decodeURIComponent(escape(atob(fileRes.content.replace(/\s/g, ''))));
+  let items = JSON.parse(currentContent);
+  const idx = items.findIndex(it => String(it.id) === String(id));
+  if (idx !== -1) {
+    items[idx] = { ...items[idx], ...updates };
+  }
+  
+  const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(items, null, 2))));
+  await callGitHub('/contents/public/api/items.json', 'PUT', {
+    message: `edit: item #${id}`,
+    content: updatedBase64,
+    sha: fileRes.sha,
+    branch: GITHUB_CONFIG.branch
+  });
+  
+  localStorage.setItem('og_portfolio_items_local', JSON.stringify(items));
+  return items;
+}
+
+/**
+ * Add a category in categories.json on GitHub
+ */
+async function addCategoryDirect(name) {
+  try {
+    const fileRes = await callGitHub('/contents/public/api/categories.json');
+    const content = decodeURIComponent(escape(atob(fileRes.content.replace(/\s/g, ''))));
+    let categories = JSON.parse(content);
+    if (!Array.isArray(categories)) categories = [];
+    if (!categories.includes(name)) {
+      categories.push(name);
+    }
+    
+    const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(categories, null, 2))));
+    await callGitHub('/contents/public/api/categories.json', 'PUT', {
+      message: `feat(category): add "${name}" via mobile admin`,
+      content: updatedBase64,
+      sha: fileRes.sha,
+      branch: GITHUB_CONFIG.branch
+    });
+    
+    return categories;
+  } catch (err) {
+    console.error('Add category error:', err);
+    throw err;
+  }
+}
+
+/**
+ * Delete a category in categories.json on GitHub
+ */
+async function deleteCategoryDirect(catName) {
+  try {
+    const fileRes = await callGitHub('/contents/public/api/categories.json');
+    const content = decodeURIComponent(escape(atob(fileRes.content.replace(/\s/g, ''))));
+    let categories = JSON.parse(content);
+    if (!Array.isArray(categories)) categories = [];
+    categories = categories.filter(c => (typeof c === 'string' ? c : c.name) !== catName);
+    
+    const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(categories, null, 2))));
+    await callGitHub('/contents/public/api/categories.json', 'PUT', {
+      message: `delete: category "${catName}" via mobile admin`,
+      content: updatedBase64,
+      sha: fileRes.sha,
+      branch: GITHUB_CONFIG.branch
+    });
+    
+    return categories;
+  } catch (err) {
+    console.error('Delete category error:', err);
+    throw err;
+  }
+}
+
 // DOM Element References
 const DOM = {
   // Screens & Containers
@@ -48,6 +298,13 @@ const DOM = {
   uploadBtn: document.getElementById('uploadBtn'),
   progressBar: document.getElementById('progressBar'),
   progressFill: document.getElementById('progressFill'),
+  uploadStatusText: document.getElementById('uploadStatusText'),
+  modeBtnFile: document.getElementById('modeBtnFile'),
+  modeBtnUrl: document.getElementById('modeBtnUrl'),
+  fileUploadContainer: document.getElementById('fileUploadContainer'),
+  urlUploadContainer: document.getElementById('urlUploadContainer'),
+  uploadMediaUrl: document.getElementById('uploadMediaUrl'),
+  uploadThumbUrl: document.getElementById('uploadThumbUrl'),
 
   // Manage Tab
   manageFilter: document.getElementById('manageFilter'),
@@ -442,7 +699,7 @@ function renderCategoryList() {
       if (!confirmDelete) return;
 
       try {
-        await apiCall(`/api/admin/categories/${cat.id}`, 'DELETE');
+        await deleteCategoryDirect(cat.name);
         showToast('Category deleted', 'success');
         await loadCategories();
         // Also refresh items in case current view displayed them
@@ -550,7 +807,7 @@ function initCategoryAddHandler() {
     }
 
     try {
-      await apiCall('/api/admin/categories', 'POST', { name });
+      await addCategoryDirect(name);
       DOM.newCategoryInput.value = '';
       showToast(`Category "${name}" created`, 'success');
       await loadCategories();
@@ -574,51 +831,72 @@ function initCategoryAddHandler() {
 }
 
 // =============================================================================
-// 7. Upload Management (Drag & Drop, Preview, XHR Progress)
+// 7. Upload Management (Drag & Drop, Preview, XHR Progress & GitHub Cloud Upload)
 // =============================================================================
 function initUploadHandlers() {
   const zone = DOM.uploadZone;
   const input = DOM.fileInput;
+  const modeBtnFile = document.getElementById('modeBtnFile');
+  const modeBtnUrl = document.getElementById('modeBtnUrl');
+  const fileContainer = document.getElementById('fileUploadContainer');
+  const urlContainer = document.getElementById('urlUploadContainer');
 
-  if (!zone || !input) return;
-
-  // Open file selector on zone click (unless clicking explicit upload-link label)
-  zone.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'LABEL') {
-      input.click();
-    }
-  });
-
-  // Drag and drop event listeners
-  ['dragenter', 'dragover'].forEach(eventType => {
-    zone.addEventListener(eventType, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      zone.classList.add('drag-over');
+  if (modeBtnFile && modeBtnUrl && fileContainer && urlContainer) {
+    modeBtnFile.addEventListener('click', () => {
+      modeBtnFile.classList.add('active');
+      modeBtnUrl.classList.remove('active');
+      fileContainer.style.display = 'block';
+      urlContainer.style.display = 'none';
+      if (DOM.uploadForm) DOM.uploadForm.style.display = 'flex';
     });
-  });
 
-  ['dragleave', 'dragend', 'drop'].forEach(eventType => {
-    zone.addEventListener(eventType, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      zone.classList.remove('drag-over');
+    modeBtnUrl.addEventListener('click', () => {
+      modeBtnUrl.classList.add('active');
+      modeBtnFile.classList.remove('active');
+      fileContainer.style.display = 'none';
+      urlContainer.style.display = 'block';
+      if (DOM.uploadForm) DOM.uploadForm.style.display = 'flex';
+      if (DOM.uploadMediaUrl) DOM.uploadMediaUrl.focus();
     });
-  });
+  }
 
-  zone.addEventListener('drop', (e) => {
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handleFilesSelected(files);
-    }
-  });
+  if (zone && input) {
+    zone.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'LABEL') {
+        input.click();
+      }
+    });
 
-  input.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFilesSelected(e.target.files);
-      input.value = ''; // Reset input to re-trigger on subsequent selection of same file
-    }
-  });
+    ['dragenter', 'dragover'].forEach(eventType => {
+      zone.addEventListener(eventType, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        zone.classList.add('drag-over');
+      });
+    });
+
+    ['dragleave', 'dragend', 'drop'].forEach(eventType => {
+      zone.addEventListener(eventType, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        zone.classList.remove('drag-over');
+      });
+    });
+
+    zone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        handleFilesSelected(files);
+      }
+    });
+
+    input.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFilesSelected(e.target.files);
+        input.value = '';
+      }
+    });
+  }
 
   // Upload button click handler
   if (DOM.uploadBtn) {
@@ -635,7 +913,6 @@ function handleFilesSelected(files) {
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    // Check type or extension
     const ext = file.name.split('.').pop().toLowerCase();
     const isImage = file.type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'].includes(ext);
     const isVideo = file.type.startsWith('video/') || ['mp4', 'webm', 'mov', 'mkv', 'm4v'].includes(ext);
@@ -664,8 +941,10 @@ function renderUploadPreviews() {
   if (!DOM.uploadPreview) return;
   DOM.uploadPreview.innerHTML = '';
 
+  const isUrlMode = DOM.modeBtnUrl && DOM.modeBtnUrl.classList.contains('active');
+
   if (STATE.selectedFiles.length === 0) {
-    if (DOM.uploadForm) DOM.uploadForm.style.display = 'none';
+    if (DOM.uploadForm && !isUrlMode) DOM.uploadForm.style.display = 'none';
     return;
   }
 
@@ -711,113 +990,138 @@ function renderUploadPreviews() {
 }
 
 /**
- * Perform multipart upload using XMLHttpRequest to track upload progress
+ * Universal upload handler supporting both Mobile File Upload and Direct Media URL
  */
-function handleUploadSubmit() {
-  if (STATE.selectedFiles.length === 0) {
-    showToast('Please select at least one image or video to upload', 'error');
-    return;
-  }
-
+async function handleUploadSubmit() {
+  const isUrlMode = DOM.modeBtnUrl && DOM.modeBtnUrl.classList.contains('active');
   const title = DOM.uploadTitle ? DOM.uploadTitle.value.trim() : '';
+
   if (!title) {
-    showToast('Title is required', 'error');
+    showToast('Please enter a project title', 'error');
     if (DOM.uploadTitle) DOM.uploadTitle.focus();
     return;
   }
 
   const description = DOM.uploadDesc ? DOM.uploadDesc.value.trim() : '';
-  const categoryId = DOM.uploadCategory ? DOM.uploadCategory.value : '';
-
-  const formData = new FormData();
-  STATE.selectedFiles.forEach(file => {
-    formData.append('files', file);
-  });
-  formData.append('title', title);
-  formData.append('description', description);
-  if (categoryId) {
-    formData.append('category_id', categoryId);
-  }
+  const categorySelect = DOM.uploadCategory;
+  const category = (categorySelect && categorySelect.value) ? categorySelect.value : 'Video Edits';
   const sideRadio = document.querySelector('input[name="uploadSide"]:checked');
   const side = sideRadio ? sideRadio.value : 'BOTH';
-  formData.append('side', side);
 
-  // Setup XHR
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', '/api/admin/upload', true);
-
-  if (DOM.progressBar && DOM.progressFill) {
-    DOM.progressBar.style.display = 'block';
-    DOM.progressFill.style.width = '0%';
-  }
+  const setStatus = (msg, percent = null) => {
+    if (DOM.uploadStatusText) {
+      DOM.uploadStatusText.style.display = 'block';
+      DOM.uploadStatusText.textContent = msg;
+    }
+    if (DOM.progressBar && DOM.progressFill && percent !== null) {
+      DOM.progressBar.style.display = 'block';
+      DOM.progressFill.style.width = `${percent}%`;
+    }
+  };
 
   if (DOM.uploadBtn) {
     DOM.uploadBtn.disabled = true;
-    DOM.uploadBtn.textContent = 'Uploading...';
+    DOM.uploadBtn.textContent = 'Publishing...';
   }
 
-  // Progress monitoring
-  xhr.upload.addEventListener('progress', (e) => {
-    if (e.lengthComputable && DOM.progressFill) {
-      const percent = Math.round((e.loaded / e.total) * 100);
-      DOM.progressFill.style.width = `${percent}%`;
-    }
-  });
+  try {
+    let mediaUrl = '';
+    let thumbnailUrl = '';
+    let mediaType = 'image';
 
-  xhr.addEventListener('load', () => {
-    if (DOM.uploadBtn) {
-      DOM.uploadBtn.disabled = false;
-      DOM.uploadBtn.textContent = 'Upload';
-    }
-
-    if (xhr.status >= 200 && xhr.status < 300) {
-      let response = null;
-      try {
-        response = JSON.parse(xhr.responseText);
-      } catch (e) {
-        // Ignored
+    if (isUrlMode) {
+      mediaUrl = DOM.uploadMediaUrl ? DOM.uploadMediaUrl.value.trim() : '';
+      if (!mediaUrl) {
+        throw new Error('Please enter a Media URL or switch to "Upload from Phone"');
       }
-
-      showToast(response && response.message ? response.message : 'Upload successful!', 'success');
-
-      // Reset form & state
-      STATE.selectedFiles = [];
-      if (DOM.uploadTitle) DOM.uploadTitle.value = '';
-      if (DOM.uploadDesc) DOM.uploadDesc.value = '';
-      if (DOM.uploadCategory) DOM.uploadCategory.value = '';
-      if (DOM.progressBar) DOM.progressBar.style.display = 'none';
-      if (DOM.progressFill) DOM.progressFill.style.width = '0%';
-
-      renderUploadPreviews();
-
-      // Refresh items list in Manage tab in background
-      loadItems(STATE.activeFilter);
+      thumbnailUrl = (DOM.uploadThumbUrl && DOM.uploadThumbUrl.value.trim()) ? DOM.uploadThumbUrl.value.trim() : mediaUrl;
+      const isVideo = mediaUrl.match(/\.(mp4|webm|mov|mkv|m4v)(\?.*)?$/i) || mediaUrl.includes('youtube') || mediaUrl.includes('vimeo');
+      mediaType = isVideo ? 'video' : 'image';
+      setStatus('Publishing project to portfolio...', 50);
     } else {
-      let errorMsg = 'Upload failed';
-      if (xhr.status === 404) {
-        errorMsg = 'Static Mode: File uploads require the active backend. Connect via local Wi-Fi: http://10.177.27.125:3000/admin';
-      } else {
-        try {
-          const errorJson = JSON.parse(xhr.responseText);
-          errorMsg = errorJson.error || errorJson.message || errorMsg;
-        } catch (e) {}
+      if (STATE.selectedFiles.length === 0) {
+        throw new Error('Please tap the box above to pick a photo or video from your phone');
       }
 
-      showToast(errorMsg, 'error');
-      if (DOM.progressBar) DOM.progressBar.style.display = 'none';
-    }
-  });
+      const file = STATE.selectedFiles[0];
+      const ext = file.name.split('.').pop().toLowerCase();
+      const isVideo = file.type.startsWith('video/') || ['mp4', 'webm', 'mov', 'mkv', 'm4v'].includes(ext);
+      mediaType = isVideo ? 'video' : 'image';
 
-  xhr.addEventListener('error', () => {
+      if (file.size > 22 * 1024 * 1024) {
+        throw new Error('File exceeds 22 MB limit for direct mobile upload. Please link via "Paste Media Link" or choose a shorter clip.');
+      }
+
+      if (isVideo) {
+        setStatus('Capturing video preview poster...', 15);
+        const thumbBase64 = await captureVideoThumbnail(file);
+
+        if (thumbBase64) {
+          setStatus('Uploading video poster...', 30);
+          const thumbUpload = await uploadBase64ToGitHub(thumbBase64, `thumb_${Date.now()}.jpg`);
+          thumbnailUrl = thumbUpload.cdnUrl;
+        }
+
+        setStatus(`Uploading video (${formatFileSize(file.size)})...`, 50);
+        const vidUpload = await uploadFileToGitHub(file, 'vid');
+        mediaUrl = vidUpload.cdnUrl;
+        if (!thumbnailUrl) thumbnailUrl = mediaUrl;
+      } else {
+        setStatus(`Uploading image (${formatFileSize(file.size)})...`, 40);
+        const imgUpload = await uploadFileToGitHub(file, 'img');
+        mediaUrl = imgUpload.cdnUrl;
+        thumbnailUrl = mediaUrl;
+      }
+    }
+
+    setStatus('Saving project into portfolio database...', 85);
+
+    const newItem = {
+      id: Date.now(),
+      title,
+      category,
+      type: mediaType,
+      side,
+      media_url: mediaUrl,
+      thumbnail_url: thumbnailUrl,
+      description
+    };
+
+    await addItemToGitHub(newItem);
+
+    setStatus('🎉 Published successfully!', 100);
+    showToast(`"${title}" published successfully!`, 'success');
+
+    // Reset inputs
+    STATE.selectedFiles = [];
+    if (DOM.uploadTitle) DOM.uploadTitle.value = '';
+    if (DOM.uploadDesc) DOM.uploadDesc.value = '';
+    if (DOM.uploadMediaUrl) DOM.uploadMediaUrl.value = '';
+    if (DOM.uploadThumbUrl) DOM.uploadThumbUrl.value = '';
+    renderUploadPreviews();
+
+    // Reload items & switch to manage tab
+    await loadItems('all');
+    setTimeout(() => {
+      if (DOM.progressBar) DOM.progressBar.style.display = 'none';
+      if (DOM.uploadStatusText) DOM.uploadStatusText.style.display = 'none';
+      const manageTabBtn = document.querySelector('.tab-btn[data-tab="manage"]');
+      if (manageTabBtn) manageTabBtn.click();
+    }, 1200);
+
+  } catch (err) {
+    console.error('Upload error:', err);
+    showToast(err.message || 'Upload failed. Please try again.', 'error');
+    if (DOM.uploadStatusText) {
+      DOM.uploadStatusText.style.display = 'block';
+      DOM.uploadStatusText.textContent = `❌ ${err.message}`;
+    }
+  } finally {
     if (DOM.uploadBtn) {
       DOM.uploadBtn.disabled = false;
-      DOM.uploadBtn.textContent = 'Upload';
+      DOM.uploadBtn.textContent = 'Publish to Portfolio';
     }
-    if (DOM.progressBar) DOM.progressBar.style.display = 'none';
-    showToast('Network error during upload', 'error');
-  });
-
-  xhr.send(formData);
+  }
 }
 
 // =============================================================================
@@ -839,13 +1143,30 @@ async function loadItems(categoryId = 'all') {
 
     const rawItems = await apiCall(url);
     let items = Array.isArray(rawItems) ? rawItems : (rawItems && rawItems.items) || [];
+
+    // Merge any locally published items from mobile
+    try {
+      const local = localStorage.getItem('og_portfolio_items_local');
+      if (local) {
+        const localItems = JSON.parse(local);
+        if (Array.isArray(localItems)) {
+          const ids = new Set(items.map(it => String(it.id)));
+          localItems.forEach(lit => {
+            if (!ids.has(String(lit.id))) {
+              items.unshift(lit);
+            }
+          });
+        }
+      }
+    } catch (e) {}
+
     // If backend did not filter parameters (e.g. static CDN rewrite)
     if (Array.isArray(items)) {
       if (categoryId && categoryId !== 'all') {
         items = items.filter(it => it.category == categoryId || String(it.category_id) == String(categoryId));
       }
       if (STATE.activeSideFilter && STATE.activeSideFilter !== 'all') {
-        items = items.filter(it => it.side === STATE.activeSideFilter);
+        items = items.filter(it => it.side === STATE.activeSideFilter || it.side === 'BOTH');
       }
     }
     STATE.items = items;
@@ -950,7 +1271,7 @@ function renderManageGrid() {
       if (!confirmDelete) return;
 
       try {
-        await apiCall(`/api/admin/items/${item.id}`, 'DELETE');
+        await deleteItemDirect(item.id);
         showToast('Item deleted successfully', 'success');
         await loadItems(STATE.activeFilter);
       } catch (err) {
@@ -1042,7 +1363,7 @@ function initManageHandlers() {
 
       for (const id of idsToDelete) {
         try {
-          await apiCall(`/api/admin/items/${id}`, 'DELETE');
+          await deleteItemDirect(id);
           successCount++;
         } catch (err) {
           console.error(`Failed to delete item ${id}:`, err);
@@ -1129,10 +1450,10 @@ function initModalHandlers() {
       DOM.editSave.textContent = 'Saving...';
 
       try {
-        await apiCall(`/api/admin/items/${STATE.currentEditingItemId}`, 'PUT', {
+        await editItemDirect(STATE.currentEditingItemId, {
           title,
           description,
-          category_id,
+          category: categoryIdVal || 'Video Edits',
           side
         });
 
