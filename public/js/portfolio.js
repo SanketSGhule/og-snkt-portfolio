@@ -262,10 +262,12 @@ function getVisibleItems() {
   if (!allPortfolioItems || allPortfolioItems.length === 0) return [];
 
   return allPortfolioItems.filter(item => {
-    // 1. Check side: item side must match currentSide or be 'BOTH'
-    const itemSide = (item.side || 'BOTH').toUpperCase();
-    const sideMatch = itemSide === currentSide || itemSide === 'BOTH';
-    if (!sideMatch) return false;
+    // 1. Check side: if currentSide === 'ALL', include both Side A and Side B works
+    if (currentSide !== 'ALL') {
+      const itemSide = (item.side || 'BOTH').toUpperCase();
+      const sideMatch = itemSide === currentSide || itemSide === 'BOTH';
+      if (!sideMatch) return false;
+    }
 
     // 2. Check category
     if (!currentCategory || currentCategory.toLowerCase() === 'all') return true;
@@ -290,9 +292,11 @@ function renderPortfolioGrid(items) {
       emptyState.style.display = 'flex';
       const emptyMsg = emptyState.querySelector('h3');
       if (emptyMsg) {
-        emptyMsg.textContent = currentSide === 'B' 
-          ? 'No Overdrive Edits in this category' 
-          : 'No Minimal Edits in this category';
+        emptyMsg.textContent = currentSide === 'ALL'
+          ? 'No works found in this category'
+          : currentSide === 'B' 
+            ? 'No Overdrive Edits in this category' 
+            : 'No Minimal Edits in this category';
       }
     }
     if (grid) grid.innerHTML = '';
@@ -366,7 +370,10 @@ function renderPortfolioGrid(items) {
     const overlay = document.createElement('div');
     overlay.className = 'item-overlay';
     overlay.innerHTML = `
-      <span class="item-category-tag">${escapeHtml(item.category)}</span>
+      <div class="item-tags-row">
+        <span class="item-category-tag">${escapeHtml(item.category)}</span>
+        ${currentSide === 'ALL' ? `<span class="item-side-badge side-tag-${(item.side || 'both').toLowerCase()}">${escapeHtml(item.side === 'BOTH' ? 'A+B' : 'SIDE ' + item.side)}</span>` : ''}
+      </div>
       <h3 class="item-title">${escapeHtml(item.title)}</h3>
       ${item.description ? `<p class="item-description">${escapeHtml(item.description)}</p>` : ''}
     `;
@@ -713,6 +720,7 @@ function initSideSwitcher() {
 
   const btnSideA = document.getElementById('btnSideA');
   const btnSideB = document.getElementById('btnSideB');
+  const btnSideBoth = document.getElementById('btnSideBoth');
 
   if (btnSideA) {
     btnSideA.addEventListener('click', () => {
@@ -731,6 +739,15 @@ function initSideSwitcher() {
       applySideMode('B', true);
     });
   }
+
+  if (btnSideBoth) {
+    btnSideBoth.addEventListener('click', () => {
+      if (currentSide === 'ALL' || isSideTransitioning) return;
+      currentSide = 'ALL';
+      localStorage.setItem(SIDE_KEY, 'ALL');
+      applySideMode('ALL', true);
+    });
+  }
 }
 
 function setSideDOMState(side) {
@@ -740,11 +757,16 @@ function setSideDOMState(side) {
   // Update switcher buttons state
   const btnA = document.getElementById('btnSideA');
   const btnB = document.getElementById('btnSideB');
+  const btnBoth = document.getElementById('btnSideBoth');
   if (btnA && btnB) {
     btnA.classList.toggle('active', side === 'A');
     btnA.setAttribute('aria-checked', side === 'A');
     btnB.classList.toggle('active', side === 'B');
     btnB.setAttribute('aria-checked', side === 'B');
+  }
+  if (btnBoth) {
+    btnBoth.classList.toggle('active', side === 'ALL');
+    btnBoth.setAttribute('aria-checked', side === 'ALL');
   }
 
   // Update mobile drawer persona cards state
@@ -764,10 +786,14 @@ function setSideDOMState(side) {
     if (heroTag) heroTag.textContent = 'SIDE A // SILENT BLUE & PURPLE';
     if (heroSubtitle) heroSubtitle.textContent = 'Silent Midnight Atmosphere • Celestial Indigo • 24FPS Cinema Cuts • Pure Editorial Direction';
     if (scrollText) scrollText.textContent = 'Explore Silent Cinema';
-  } else {
+  } else if (side === 'B') {
     if (heroTag) heroTag.textContent = 'SIDE B // AGGRESSIVE RED OVERDRIVE';
     if (heroSubtitle) heroSubtitle.textContent = 'Volcanic Magma Glitch • Laser Red Cuts • Hyper-Kinetic Motion • Heavy Bass Overdrive';
     if (scrollText) scrollText.textContent = 'Explore Overdrive';
+  } else {
+    if (heroTag) heroTag.textContent = 'DUAL ARCHIVE // BOTH SIDES';
+    if (heroSubtitle) heroSubtitle.textContent = 'Complete Creative Spectrum • Silent Indigo & Aggressive Crimson • The Full Vault';
+    if (scrollText) scrollText.textContent = 'Explore All Works';
   }
 
   // Re-render items matching this side
@@ -787,19 +813,25 @@ function applySideMode(side, triggerTransition = true) {
     overlay.setAttribute('data-target-side', side);
 
     if (transBadge) {
-      transBadge.textContent = side === 'B' 
-        ? 'OVERDRIVE ACTIVE // MAX GAIN' 
-        : 'SILENT CINEMA // 24FPS DECK';
+      transBadge.textContent = side === 'ALL'
+        ? 'DUAL ARCHIVE // COMPLETE SPECTRUM'
+        : side === 'B' 
+          ? 'OVERDRIVE ACTIVE // MAX GAIN' 
+          : 'SILENT CINEMA // 24FPS DECK';
     }
     if (glitchText) {
-      glitchText.textContent = side === 'B' 
-        ? 'SIDE B // AGGRESSIVE RED' 
-        : 'SIDE A // SILENT BLUE & PURPLE';
+      glitchText.textContent = side === 'ALL'
+        ? 'ALL SIDES // THE FULL VAULT'
+        : side === 'B' 
+          ? 'SIDE B // AGGRESSIVE RED' 
+          : 'SIDE A // SILENT BLUE & PURPLE';
     }
     if (transDesc) {
-      transDesc.textContent = side === 'B'
-        ? 'VOLCANIC MAGMA GLITCH • LASER RED CUTS • BASS OVERDRIVE'
-        : 'PURE EDITORIAL CUTS • CELESTIAL INDIGO • MINIMAL PACING';
+      transDesc.textContent = side === 'ALL'
+        ? 'SYNTHESIS OF EDITORIAL SILENCE & VOLCANIC OVERDRIVE'
+        : side === 'B'
+          ? 'VOLCANIC MAGMA GLITCH • LASER RED CUTS • BASS OVERDRIVE'
+          : 'PURE EDITORIAL CUTS • CELESTIAL INDIGO • MINIMAL PACING';
     }
 
     overlay.classList.remove('active');
