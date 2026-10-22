@@ -10,16 +10,6 @@
     "description": ""
   },
   {
-    "id": 8,
-    "title": "Chrome Horizons 3D Loop",
-    "category": "Motion Graphics",
-    "type": "video",
-    "side": "B",
-    "media_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4",
-    "thumbnail_url": "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=1000&auto=format&fit=crop&q=80",
-    "description": "Metallic physics simulation with procedural lighting crafted in Cinema 4D."
-  },
-  {
     "id": 9,
     "title": "Subway Beats Rhythm Edit",
     "category": "Video Edits",
