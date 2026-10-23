@@ -13,6 +13,9 @@ const STATE = {
   categories: [],
   items: [],
   selectedFiles: [],
+  selectedThumbFile: null,
+  selectedThumbRatio: null,
+  selectedVideoRatio: null,
   selectedItemIds: new Set(),
   currentEditingItemId: null,
   activeFilter: 'all',
@@ -319,6 +322,15 @@ const DOM = {
   urlUploadContainer: document.getElementById('urlUploadContainer'),
   uploadMediaUrl: document.getElementById('uploadMediaUrl'),
   uploadThumbUrl: document.getElementById('uploadThumbUrl'),
+  thumbUploadSection: document.getElementById('thumbUploadSection'),
+  thumbFileInput: document.getElementById('thumbFileInput'),
+  thumbDropZone: document.getElementById('thumbDropZone'),
+  thumbPreviewWrap: document.getElementById('thumbPreviewWrap'),
+  thumbPreviewImg: document.getElementById('thumbPreviewImg'),
+  thumbPreviewName: document.getElementById('thumbPreviewName'),
+  thumbPreviewRatio: document.getElementById('thumbPreviewRatio'),
+  btnRemoveThumb: document.getElementById('btnRemoveThumb'),
+  thumbUrlWrap: document.getElementById('thumbUrlWrap'),
 
   // Manage Tab
   manageFilter: document.getElementById('manageFilter'),
@@ -339,6 +351,11 @@ const DOM = {
   editCategory: document.getElementById('editCategory'),
   editCancel: document.getElementById('editCancel'),
   editSave: document.getElementById('editSave'),
+  editThumbFileInput: document.getElementById('editThumbFileInput'),
+  editThumbImg: document.getElementById('editThumbImg'),
+  editThumbPlaceholder: document.getElementById('editThumbPlaceholder'),
+  editThumbRemoveBtn: document.getElementById('editThumbRemoveBtn'),
+  editThumbUrlInput: document.getElementById('editThumbUrlInput'),
 
   // Toast
   toast: document.getElementById('toast')
@@ -862,6 +879,7 @@ function initUploadHandlers() {
       fileContainer.style.display = 'block';
       urlContainer.style.display = 'none';
       if (DOM.uploadForm) DOM.uploadForm.style.display = 'flex';
+      if (DOM.thumbUrlWrap) DOM.thumbUrlWrap.style.display = 'none';
     });
 
     modeBtnUrl.addEventListener('click', () => {
@@ -870,7 +888,50 @@ function initUploadHandlers() {
       fileContainer.style.display = 'none';
       urlContainer.style.display = 'block';
       if (DOM.uploadForm) DOM.uploadForm.style.display = 'flex';
+      if (DOM.thumbUrlWrap) DOM.thumbUrlWrap.style.display = 'block';
       if (DOM.uploadMediaUrl) DOM.uploadMediaUrl.focus();
+    });
+  }
+
+  // Thumbnail file selection handler
+  if (DOM.thumbFileInput) {
+    DOM.thumbFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select an image file (JPG/PNG/WebP) for thumbnail', 'error');
+        return;
+      }
+      STATE.selectedThumbFile = file;
+
+      const objectUrl = URL.createObjectURL(file);
+      if (DOM.thumbPreviewImg) DOM.thumbPreviewImg.src = objectUrl;
+      if (DOM.thumbPreviewName) DOM.thumbPreviewName.textContent = file.name;
+
+      const img = new Image();
+      img.onload = () => {
+        STATE.selectedThumbRatio = `${img.naturalWidth}/${img.naturalHeight}`;
+        if (DOM.thumbPreviewRatio) {
+          DOM.thumbPreviewRatio.textContent = `Ratio: ${img.naturalWidth}×${img.naturalHeight} (${(img.naturalWidth / img.naturalHeight).toFixed(2)})`;
+        }
+      };
+      img.src = objectUrl;
+
+      if (DOM.thumbPreviewWrap) DOM.thumbPreviewWrap.style.display = 'flex';
+      if (DOM.thumbDropZone) DOM.thumbDropZone.style.display = 'none';
+    });
+  }
+
+  // Remove selected thumbnail handler
+  if (DOM.btnRemoveThumb) {
+    DOM.btnRemoveThumb.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      STATE.selectedThumbFile = null;
+      STATE.selectedThumbRatio = null;
+      if (DOM.thumbFileInput) DOM.thumbFileInput.value = '';
+      if (DOM.thumbPreviewWrap) DOM.thumbPreviewWrap.style.display = 'none';
+      if (DOM.thumbDropZone) DOM.thumbDropZone.style.display = 'flex';
     });
   }
 
@@ -1076,6 +1137,15 @@ async function handleUploadSubmit() {
       }
     }
 
+    // 1. Upload custom thumbnail if chosen
+    if (STATE.selectedThumbFile) {
+      setStatus(`Uploading custom thumbnail (${formatFileSize(STATE.selectedThumbFile.size)})...`, 70);
+      const thumbUpload = await uploadFileToGitHub(STATE.selectedThumbFile, 'thumb');
+      thumbnailUrl = thumbUpload.cdnUrl;
+    } else if (isUrlMode && DOM.uploadThumbUrl && DOM.uploadThumbUrl.value.trim()) {
+      thumbnailUrl = DOM.uploadThumbUrl.value.trim();
+    }
+
     setStatus('Saving project into portfolio database...', 85);
 
     const newItem = {
@@ -1088,6 +1158,20 @@ async function handleUploadSubmit() {
       description
     };
 
+    if (thumbnailUrl) {
+      newItem.thumbnail_url = thumbnailUrl;
+      if (STATE.selectedThumbRatio) {
+        newItem.aspect_ratio = STATE.selectedThumbRatio;
+      }
+    }
+
+    if (mediaType === 'video') {
+      newItem.video_aspect_ratio = STATE.selectedVideoRatio || '9/16';
+      if (!thumbnailUrl && !newItem.aspect_ratio) {
+        newItem.aspect_ratio = newItem.video_aspect_ratio;
+      }
+    }
+
     await addItemToGitHub(newItem);
 
     setStatus('🎉 Published successfully!', 100);
@@ -1095,10 +1179,16 @@ async function handleUploadSubmit() {
 
     // Reset inputs
     STATE.selectedFiles = [];
+    STATE.selectedThumbFile = null;
+    STATE.selectedThumbRatio = null;
+    STATE.selectedVideoRatio = null;
     if (DOM.uploadTitle) DOM.uploadTitle.value = '';
     if (DOM.uploadDesc) DOM.uploadDesc.value = '';
     if (DOM.uploadMediaUrl) DOM.uploadMediaUrl.value = '';
     if (DOM.uploadThumbUrl) DOM.uploadThumbUrl.value = '';
+    if (DOM.thumbFileInput) DOM.thumbFileInput.value = '';
+    if (DOM.thumbPreviewWrap) DOM.thumbPreviewWrap.style.display = 'none';
+    if (DOM.thumbDropZone) DOM.thumbDropZone.style.display = 'flex';
     renderUploadPreviews();
 
     // Reload items & switch to manage tab
@@ -1210,10 +1300,17 @@ function renderManageGrid() {
 
     let mediaElement = '';
     if (isVideo) {
-      mediaElement = `
-        <video src="${escapeHtml(videoSrc)}#t=3" muted preload="metadata" style="width:100%; height:100%; object-fit:cover;"></video>
-        <span class="manage-media-badge">VIDEO (00:03)</span>
-      `;
+      if (thumbSrc) {
+        mediaElement = `
+          <img src="${escapeHtml(thumbSrc)}" alt="${escapeHtml(item.title)}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">
+          <span class="manage-media-badge" style="background:rgba(255,107,53,0.9); color:#fff;">THUMB (REST) • VIDEO (HOVER)</span>
+        `;
+      } else {
+        mediaElement = `
+          <video src="${escapeHtml(videoSrc)}#t=3" muted preload="metadata" style="width:100%; height:100%; object-fit:cover;"></video>
+          <span class="manage-media-badge">VIDEO (AUTO)</span>
+        `;
+      }
     } else {
       mediaElement = `<img src="${escapeHtml(item.file_path || item.media_url || '')}" alt="${escapeHtml(item.title)}" loading="lazy">`;
     }
@@ -1376,9 +1473,16 @@ function initManageHandlers() {
 // =============================================================================
 // 9. Edit Modal Management
 // =============================================================================
+let editSelectedThumbFile = null;
+let editSelectedThumbRatio = null;
+let editThumbAction = 'keep'; // 'keep', 'replace', 'remove'
+
 function openEditModal(item) {
   if (!DOM.editModal) return;
   STATE.currentEditingItemId = item.id;
+  editSelectedThumbFile = null;
+  editSelectedThumbRatio = null;
+  editThumbAction = 'keep';
 
   if (DOM.editTitle) DOM.editTitle.value = item.title || '';
   if (DOM.editDesc) DOM.editDesc.value = item.description || '';
@@ -1391,6 +1495,26 @@ function openEditModal(item) {
   const sideRadio = document.querySelector(`input[name="editSide"][value="${currentSide}"]`);
   if (sideRadio) sideRadio.checked = true;
 
+  const currentThumb = item.thumbnail_url || item.thumbnail_path || '';
+  if (currentThumb) {
+    if (DOM.editThumbImg) {
+      DOM.editThumbImg.src = currentThumb;
+      DOM.editThumbImg.style.display = 'block';
+    }
+    if (DOM.editThumbPlaceholder) DOM.editThumbPlaceholder.style.display = 'none';
+    if (DOM.editThumbRemoveBtn) DOM.editThumbRemoveBtn.style.display = 'block';
+    if (DOM.editThumbUrlInput) DOM.editThumbUrlInput.value = currentThumb;
+  } else {
+    if (DOM.editThumbImg) {
+      DOM.editThumbImg.src = '';
+      DOM.editThumbImg.style.display = 'none';
+    }
+    if (DOM.editThumbPlaceholder) DOM.editThumbPlaceholder.style.display = 'block';
+    if (DOM.editThumbRemoveBtn) DOM.editThumbRemoveBtn.style.display = 'none';
+    if (DOM.editThumbUrlInput) DOM.editThumbUrlInput.value = '';
+  }
+
+  if (DOM.editThumbFileInput) DOM.editThumbFileInput.value = '';
 
   DOM.editModal.style.display = 'flex';
   if (DOM.editTitle) DOM.editTitle.focus();
@@ -1400,11 +1524,60 @@ function closeEditModal() {
   if (!DOM.editModal) return;
   DOM.editModal.style.display = 'none';
   STATE.currentEditingItemId = null;
+  editSelectedThumbFile = null;
+  editSelectedThumbRatio = null;
+  editThumbAction = 'keep';
 }
 
 function initModalHandlers() {
   if (DOM.editCancel) {
     DOM.editCancel.addEventListener('click', closeEditModal);
+  }
+
+  // File picker inside edit modal
+  if (DOM.editThumbFileInput) {
+    DOM.editThumbFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select an image file (JPG/PNG/WebP)', 'error');
+        return;
+      }
+      editSelectedThumbFile = file;
+      editThumbAction = 'replace';
+
+      const objUrl = URL.createObjectURL(file);
+      if (DOM.editThumbImg) {
+        DOM.editThumbImg.src = objUrl;
+        DOM.editThumbImg.style.display = 'block';
+      }
+      if (DOM.editThumbPlaceholder) DOM.editThumbPlaceholder.style.display = 'none';
+      if (DOM.editThumbRemoveBtn) DOM.editThumbRemoveBtn.style.display = 'block';
+
+      const img = new Image();
+      img.onload = () => {
+        editSelectedThumbRatio = `${img.naturalWidth}/${img.naturalHeight}`;
+      };
+      img.src = objUrl;
+    });
+  }
+
+  // Remove thumbnail button inside edit modal
+  if (DOM.editThumbRemoveBtn) {
+    DOM.editThumbRemoveBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      editSelectedThumbFile = null;
+      editSelectedThumbRatio = null;
+      editThumbAction = 'remove';
+      if (DOM.editThumbImg) {
+        DOM.editThumbImg.src = '';
+        DOM.editThumbImg.style.display = 'none';
+      }
+      if (DOM.editThumbPlaceholder) DOM.editThumbPlaceholder.style.display = 'block';
+      if (DOM.editThumbRemoveBtn) DOM.editThumbRemoveBtn.style.display = 'none';
+      if (DOM.editThumbUrlInput) DOM.editThumbUrlInput.value = '';
+      if (DOM.editThumbFileInput) DOM.editThumbFileInput.value = '';
+    });
   }
 
   // Close modal when clicking backdrop
@@ -1419,9 +1592,7 @@ function initModalHandlers() {
   // Close modal on Escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (DOM.videoThumbModal && DOM.videoThumbModal.style.display === 'flex') {
-        closeVideoThumbModal();
-      } else if (DOM.editModal && DOM.editModal.style.display === 'flex') {
+      if (DOM.editModal && DOM.editModal.style.display === 'flex') {
         closeEditModal();
       }
     }
@@ -1457,10 +1628,22 @@ function initModalHandlers() {
           side
         };
 
-        const customThumb = DOM.editCustomThumbUrl ? DOM.editCustomThumbUrl.value.trim() : '';
-        if (customThumb) {
-          updates.thumbnail_url = customThumb;
-          updates.thumbnail_path = customThumb;
+        // Thumbnail update handling
+        if (editSelectedThumbFile) {
+          DOM.editSave.textContent = 'Uploading thumb...';
+          const thumbUpload = await uploadFileToGitHub(editSelectedThumbFile, 'thumb');
+          updates.thumbnail_url = thumbUpload.cdnUrl;
+          updates.thumbnail_path = thumbUpload.cdnUrl;
+          if (editSelectedThumbRatio) {
+            updates.aspect_ratio = editSelectedThumbRatio;
+          }
+        } else if (editThumbAction === 'remove') {
+          updates.thumbnail_url = '';
+          updates.thumbnail_path = '';
+        } else if (DOM.editThumbUrlInput && DOM.editThumbUrlInput.value.trim()) {
+          const customUrl = DOM.editThumbUrlInput.value.trim();
+          updates.thumbnail_url = customUrl;
+          updates.thumbnail_path = customUrl;
         }
 
         await editItemDirect(STATE.currentEditingItemId, updates);
