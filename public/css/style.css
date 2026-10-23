@@ -1051,13 +1051,53 @@ button {
 .item-media-container {
   position: relative;
   width: 100%;
-  aspect-ratio: var(--aspect-ratio, auto);
+  aspect-ratio: var(--thumb-ratio, var(--aspect-ratio, 16 / 9));
   overflow: hidden;
   background: var(--bg-secondary);
-  transition: aspect-ratio 0.25s ease;
+  transition: aspect-ratio 0.42s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s ease;
+  will-change: aspect-ratio, transform;
+}
+
+/* Hover / Touch-and-Hold / Zoomed: smoothly scale/morph to video intrinsic aspect ratio */
+.grid-item:hover .item-media-container,
+.grid-item.is-holding .item-media-container,
+.grid-item.is-zoomed .item-media-container {
+  aspect-ratio: var(--video-ratio, var(--thumb-ratio, var(--aspect-ratio, 16 / 9))) !important;
 }
 
 .item-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s var(--ease-smooth), filter 0.35s ease;
+}
+
+.item-media-container .item-thumb-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  z-index: 2;
+  transition: opacity 0.38s ease, transform 0.4s var(--ease-smooth);
+  pointer-events: auto;
+}
+
+.item-media-container .video-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  z-index: 1;
+  transition: transform 0.4s var(--ease-smooth);
+}
+
+/* Image items without video */
+.item-media-container img:not(.item-thumb-img) {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1069,6 +1109,15 @@ button {
 .grid-item.is-holding .item-media,
 .grid-item.is-zoomed .item-media {
   transform: scale(1.035);
+}
+
+/* Crossfade: thumbnail fades out smoothly when video is hovered/holding/playing */
+.grid-item:hover .item-thumb-img,
+.grid-item.is-holding .item-thumb-img,
+.grid-item.is-playing .item-thumb-img,
+.grid-item.is-zoomed .item-thumb-img {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Play Icon Overlay for Videos */
