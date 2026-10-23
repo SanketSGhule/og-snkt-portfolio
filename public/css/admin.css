@@ -1705,4 +1705,140 @@ button {
   padding: 14px;
 }
 
+/* --------------------------------------------------------------------------
+   Admin Light Mode Refinements
+   -------------------------------------------------------------------------- */
+[data-theme="light"] .admin-header {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .admin-tabs {
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .tab-btn {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .tab-btn.active {
+  color: var(--accent) !important;
+  border-bottom-color: var(--accent) !important;
+}
+
+[data-theme="light"] .upload-mode-toggle {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .upload-mode-btn {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .upload-mode-btn.active {
+  background: #ffffff !important;
+  color: var(--accent) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .upload-zone {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .upload-zone:hover {
+  background: #f8fafc !important;
+  border-color: var(--accent) !important;
+}
+
+[data-theme="light"] .upload-form,
+[data-theme="light"] .modal-content,
+[data-theme="light"] .login-card,
+[data-theme="light"] .manage-card,
+[data-theme="light"] .category-item,
+[data-theme="light"] .preview-card,
+[data-theme="light"] .url-input-box {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .upload-form input,
+[data-theme="light"] .upload-form textarea,
+[data-theme="light"] .upload-form select,
+[data-theme="light"] .modal-content input,
+[data-theme="light"] .modal-content textarea,
+[data-theme="light"] .modal-content select,
+[data-theme="light"] .category-add input,
+[data-theme="light"] .manage-toolbar select,
+[data-theme="light"] .url-input-box input {
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .manage-select-wrap {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .card-action-btn {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .manage-media-badge {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .side-radio-btn {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+[data-theme="light"] .side-radio-btn.active {
+  background: rgba(255, 107, 53, 0.12) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+[data-theme="light"] .modal {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+[data-theme="light"] .thumbnail-upload-section,
+[data-theme="light"] .edit-thumb-section {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .thumb-drop-zone {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .thumb-drop-zone:hover {
+  background: #f8fafc !important;
+  border-color: var(--accent) !important;
+}
+
+[data-theme="light"] .thumb-preview-wrap {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .category-item {
+  color: #0f172a !important;
+}
+
+
 
