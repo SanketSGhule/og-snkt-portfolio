@@ -975,18 +975,20 @@ button {
    6. Portfolio Grid & Items (Masonry Pixel-Ratio & Interactive Zoom/Play)
    -------------------------------------------------------------------------- */
 .grid {
-  column-count: 3;
-  column-gap: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: start;
   width: 100%;
   transition: opacity 0.3s ease;
   isolation: isolate;
   position: relative;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1024px) and (min-width: 769px) {
   .grid {
-    column-count: 2;
-    column-gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
   }
 }
 
@@ -998,12 +1000,10 @@ button {
   border: 1px solid var(--border);
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease, opacity 0.3s ease;
   box-shadow: 0 6px 20px var(--shadow);
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  margin-bottom: 24px;
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  page-break-inside: avoid;
+  margin-bottom: 0;
   vertical-align: top;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -1851,18 +1851,17 @@ button {
     flex-shrink: 0;
   }
 
-  /* Portfolio Cards in Single Column Masonry for Mobile */
+  /* Portfolio Cards in Single Column Grid for Mobile */
   .grid {
-    column-count: 1;
-    column-gap: 16px;
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .grid-item {
     border-radius: 12px;
-    margin-bottom: 18px;
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-    display: inline-block;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
     width: 100%;
   }
 
