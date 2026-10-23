@@ -326,20 +326,59 @@ function renderPortfolioGrid(items) {
     const mediaContainer = document.createElement('div');
     mediaContainer.className = 'item-media-container';
 
+    // 1. Initial Aspect Ratio Hint if present
+    if (item.aspect_ratio) {
+      const normRatio = item.aspect_ratio.toString().replace(':', '/');
+      mediaContainer.style.aspectRatio = normRatio;
+      mediaContainer.style.setProperty('--aspect-ratio', normRatio);
+    }
+
     if (isVideo) {
-      // Inline muted loop video preview on hover
+      // Inline muted loop video preview
       const video = document.createElement('video');
       video.className = 'item-media video-preview';
       video.muted = true;
       video.loop = true;
       video.playsInline = true;
       video.preload = 'metadata';
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
       if (item.thumbnail_url) video.poster = item.thumbnail_url;
 
       const source = document.createElement('source');
       source.src = item.media_url;
       source.type = 'video/mp4';
       video.appendChild(source);
+
+      // Early ratio detection from poster thumbnail if available
+      if (item.thumbnail_url && !item.aspect_ratio) {
+        const posterImg = new Image();
+        posterImg.src = item.thumbnail_url;
+        const applyPosterRatio = () => {
+          if (posterImg.naturalWidth && posterImg.naturalHeight && !mediaContainer.dataset.ratioSet) {
+            const ratio = `${posterImg.naturalWidth} / ${posterImg.naturalHeight}`;
+            mediaContainer.style.aspectRatio = ratio;
+            mediaContainer.style.setProperty('--aspect-ratio', ratio);
+            if (window.ScrollTrigger) ScrollTrigger.refresh();
+          }
+        };
+        if (posterImg.complete) {
+          applyPosterRatio();
+        } else {
+          posterImg.addEventListener('load', applyPosterRatio);
+        }
+      }
+
+      // Exact pixel ratio detection from video metadata
+      video.addEventListener('loadedmetadata', () => {
+        if (video.videoWidth && video.videoHeight) {
+          const ratio = `${video.videoWidth} / ${video.videoHeight}`;
+          mediaContainer.style.aspectRatio = ratio;
+          mediaContainer.style.setProperty('--aspect-ratio', ratio);
+          mediaContainer.dataset.ratioSet = 'true';
+          if (window.ScrollTrigger) ScrollTrigger.refresh();
+        }
+      });
 
       // Play Icon SVG Overlay
       const playIcon = document.createElement('div');
@@ -351,19 +390,58 @@ function renderPortfolioGrid(items) {
         </svg>
       `;
 
+      // Touch-and-Hold Preview Badge for Video
+      const holdBadge = document.createElement('div');
+      holdBadge.className = 'tile-hold-badge';
+      holdBadge.setAttribute('aria-hidden', 'true');
+      holdBadge.innerHTML = `
+        <span class="hold-pulse-dot"></span>
+        <span class="hold-text">PREVIEW</span>
+      `;
+
       mediaContainer.appendChild(video);
       mediaContainer.appendChild(playIcon);
+      mediaContainer.appendChild(holdBadge);
 
-      // Setup Hover Preview interaction
-      setupVideoHover(card, video);
+      // Setup Hover & Touch-and-Hold zoom/play
+      setupTileInteractions(card, video, link);
     } else {
-      // Image item with lazy loading
+      // Image item with dynamic pixel ratio detection
       const img = document.createElement('img');
       img.className = 'item-media';
       img.src = item.thumbnail_url || item.media_url;
       img.alt = item.title;
       img.loading = 'lazy';
+
+      const applyImgRatio = () => {
+        if (img.naturalWidth && img.naturalHeight) {
+          const ratio = `${img.naturalWidth} / ${img.naturalHeight}`;
+          mediaContainer.style.aspectRatio = ratio;
+          mediaContainer.style.setProperty('--aspect-ratio', ratio);
+          if (window.ScrollTrigger) ScrollTrigger.refresh();
+        }
+      };
+
+      if (img.complete && img.naturalWidth) {
+        applyImgRatio();
+      } else {
+        img.addEventListener('load', applyImgRatio);
+      }
+
+      // Touch-and-Hold Preview Badge for Image
+      const holdBadge = document.createElement('div');
+      holdBadge.className = 'tile-hold-badge';
+      holdBadge.setAttribute('aria-hidden', 'true');
+      holdBadge.innerHTML = `
+        <span class="hold-pulse-dot"></span>
+        <span class="hold-text">ZOOM</span>
+      `;
+
       mediaContainer.appendChild(img);
+      mediaContainer.appendChild(holdBadge);
+
+      // Setup Hover & Touch-and-Hold zoom
+      setupTileInteractions(card, null, link);
     }
 
     // Hover Details Overlay
@@ -392,27 +470,124 @@ function renderPortfolioGrid(items) {
 }
 
 // -----------------------------------------------------------------------------
-// 4. Video Hover Preview
+// 4. Interactive Tile Engine: Desktop Hover & Mobile Touch-and-Hold Zoom/Play
 // -----------------------------------------------------------------------------
-function setupVideoHover(card, video) {
-  card.addEventListener('mouseenter', () => {
-    // In Side B (Overdrive), preview videos play at an aggressive 1.35x speed ramp!
-    video.playbackRate = currentSide === 'B' ? 1.35 : 1.0;
+function setupTileInteractions(card, video, link) {
+  let holdTimer = null;
+  let isHolding = false;
+  let preventNextClick = false;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  const HOLD_THRESHOLD_MS = 200;
 
-    // Only attempt playback if video is ready
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Safe catch for autoplay constraints
-      });
+  const startPreview = (isTouch = false) => {
+    card.classList.add('is-zoomed', 'is-playing');
+    if (isTouch) card.classList.add('is-holding', 'is-touch');
+
+    if (video) {
+      // In Side B (Overdrive), preview videos play at 1.35x speed ramp
+      video.playbackRate = currentSide === 'B' ? 1.35 : 1.0;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
     }
+
+    if (isTouch && navigator.vibrate) {
+      try { navigator.vibrate(30); } catch (e) {}
+    }
+  };
+
+  const stopPreview = () => {
+    card.classList.remove('is-zoomed', 'is-playing', 'is-holding', 'is-touch');
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+      video.playbackRate = 1.0;
+    }
+  };
+
+  // 1. Desktop Hover
+  card.addEventListener('mouseenter', () => {
+    startPreview(false);
   });
 
   card.addEventListener('mouseleave', () => {
-    video.pause();
-    video.currentTime = 0;
-    video.playbackRate = 1.0;
+    stopPreview();
   });
+
+  // 2. Mobile Touch-and-Hold
+  card.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    isHolding = false;
+
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(() => {
+      isHolding = true;
+      preventNextClick = true; // Block lightbox click when hold is released
+      startPreview(true);
+    }, HOLD_THRESHOLD_MS);
+  }, { passive: true });
+
+  card.addEventListener('touchmove', (e) => {
+    if (!holdTimer && !isHolding) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const deltaX = Math.abs(touch.clientX - touchStartX);
+    const deltaY = Math.abs(touch.clientY - touchStartY);
+
+    // If moved more than 8px, user is scrolling the page -> cancel hold
+    if (deltaX > 8 || deltaY > 8) {
+      if (holdTimer) {
+        clearTimeout(holdTimer);
+        holdTimer = null;
+      }
+      if (isHolding) {
+        isHolding = false;
+        stopPreview();
+        setTimeout(() => { preventNextClick = false; }, 100);
+      }
+    }
+  }, { passive: true });
+
+  const handleTouchEnd = () => {
+    if (holdTimer) {
+      clearTimeout(holdTimer);
+      holdTimer = null;
+    }
+    if (isHolding) {
+      isHolding = false;
+      stopPreview();
+      setTimeout(() => {
+        preventNextClick = false;
+      }, 350);
+    }
+  };
+
+  card.addEventListener('touchend', handleTouchEnd);
+  card.addEventListener('touchcancel', handleTouchEnd);
+
+  // Prevent browser context menu (long press image popup) while holding
+  card.addEventListener('contextmenu', (e) => {
+    if (isHolding || preventNextClick) {
+      e.preventDefault();
+      return false;
+    }
+  });
+
+  // Intercept click on link during capture phase to prevent lightbox if hold occurred
+  if (link) {
+    link.addEventListener('click', (e) => {
+      if (preventNextClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        preventNextClick = false;
+      }
+    }, true);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -441,11 +616,14 @@ function filterPortfolioGrid(category) {
           scale: 1,
           duration: 0.35,
           ease: 'power2.out',
-          overwrite: 'auto'
+          overwrite: 'auto',
+          onComplete: () => {
+            gsap.set(item, { clearProps: 'transform' });
+          }
         });
       } else {
         item.style.opacity = '1';
-        item.style.transform = 'scale(1)';
+        item.style.transform = '';
       }
     } else {
       item.classList.add('filtering-out');
@@ -602,7 +780,10 @@ function animateGridEntrance() {
           stagger: 0.08,
           ease: 'power3.out',
           onComplete: () => {
-            batch.forEach(card => card.classList.remove('anim-target'));
+            batch.forEach(card => {
+              card.classList.remove('anim-target');
+              gsap.set(card, { clearProps: 'transform' });
+            });
           }
         });
       }
@@ -617,14 +798,17 @@ function animateGridEntrance() {
       stagger: 0.08,
       ease: 'power3.out',
       onComplete: () => {
-        cards.forEach(card => card.classList.remove('anim-target'));
+        cards.forEach(card => {
+          card.classList.remove('anim-target');
+          gsap.set(card, { clearProps: 'transform' });
+        });
       }
     });
   } else {
     // Fallback if GSAP is blocked or unavailable
     cards.forEach(card => {
       card.style.opacity = '1';
-      card.style.transform = 'none';
+      card.style.transform = '';
       card.classList.remove('anim-target');
     });
   }
