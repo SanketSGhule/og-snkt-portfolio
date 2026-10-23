@@ -334,7 +334,7 @@ function renderPortfolioGrid(items) {
     }
 
     if (isVideo) {
-      // Inline muted loop video preview
+      // Native 00:03 video frame preview (no separate thumbnail image needed)
       const video = document.createElement('video');
       video.className = 'item-media video-preview';
       video.muted = true;
@@ -343,34 +343,27 @@ function renderPortfolioGrid(items) {
       video.preload = 'metadata';
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
-      if (item.thumbnail_url) video.poster = item.thumbnail_url;
+
+      // Select 00:03 (or multiple of 3 if specified) as native video preview frame
+      const targetTime = (item.preview_time && Number(item.preview_time) > 0) ? Number(item.preview_time) : 3;
+      video.dataset.thumbTime = targetTime.toString();
 
       const source = document.createElement('source');
-      source.src = item.media_url;
+      source.src = `${item.media_url}#t=${targetTime}`;
       source.type = 'video/mp4';
       video.appendChild(source);
 
-      // Early ratio detection from poster thumbnail if available
-      if (item.thumbnail_url && !item.aspect_ratio) {
-        const posterImg = new Image();
-        posterImg.src = item.thumbnail_url;
-        const applyPosterRatio = () => {
-          if (posterImg.naturalWidth && posterImg.naturalHeight && !mediaContainer.dataset.ratioSet) {
-            const ratio = `${posterImg.naturalWidth} / ${posterImg.naturalHeight}`;
-            mediaContainer.style.aspectRatio = ratio;
-            mediaContainer.style.setProperty('--aspect-ratio', ratio);
-            if (window.ScrollTrigger) ScrollTrigger.refresh();
-          }
-        };
-        if (posterImg.complete) {
-          applyPosterRatio();
-        } else {
-          posterImg.addEventListener('load', applyPosterRatio);
+      // Seek video to 00:03 frame & detect intrinsic pixel ratio
+      const applyFrameSeek = () => {
+        let seekTime = targetTime;
+        if (video.duration && video.duration > 0 && video.duration < seekTime) {
+          seekTime = Math.max(0, video.duration * 0.5);
         }
-      }
+        try {
+          video.currentTime = seekTime;
+          video.dataset.thumbTime = seekTime.toString();
+        } catch (e) {}
 
-      // Exact pixel ratio detection from video metadata
-      video.addEventListener('loadedmetadata', () => {
         if (video.videoWidth && video.videoHeight) {
           const ratio = `${video.videoWidth} / ${video.videoHeight}`;
           mediaContainer.style.aspectRatio = ratio;
@@ -378,7 +371,15 @@ function renderPortfolioGrid(items) {
           mediaContainer.dataset.ratioSet = 'true';
           if (window.ScrollTrigger) ScrollTrigger.refresh();
         }
-      });
+      };
+
+      video.addEventListener('loadedmetadata', applyFrameSeek);
+      video.addEventListener('canplay', () => {
+        if (!video.dataset.frameSeeked) {
+          applyFrameSeek();
+          video.dataset.frameSeeked = 'true';
+        }
+      }, { once: true });
 
       // Play Icon SVG Overlay
       const playIcon = document.createElement('div');
@@ -409,7 +410,7 @@ function renderPortfolioGrid(items) {
       // Image item with dynamic pixel ratio detection
       const img = document.createElement('img');
       img.className = 'item-media';
-      img.src = item.thumbnail_url || item.media_url;
+      img.src = item.media_url;
       img.alt = item.title;
       img.loading = 'lazy';
 
@@ -502,7 +503,10 @@ function setupTileInteractions(card, video, link) {
     card.classList.remove('is-zoomed', 'is-playing', 'is-holding', 'is-touch');
     if (video) {
       video.pause();
-      video.currentTime = 0;
+      const restTime = parseFloat(video.dataset.thumbTime || '3');
+      try {
+        video.currentTime = restTime;
+      } catch (e) {}
       video.playbackRate = 1.0;
     }
   };
