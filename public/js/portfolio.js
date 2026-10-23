@@ -343,10 +343,11 @@ function renderPortfolioGrid(items) {
     }
 
     if (isVideo) {
-      // Video element (plays on hover/touch-and-hold)
+      // Video element (plays on hover/touch-and-hold with 40% sound)
       const video = document.createElement('video');
       video.className = 'item-media video-preview';
       video.muted = true;
+      video.volume = 0.4;
       video.loop = true;
       video.playsInline = true;
       video.preload = 'metadata';
@@ -513,14 +514,32 @@ function setupTileInteractions(card, video, link) {
     if (isTouch) card.classList.add('is-holding', 'is-touch');
 
     if (video) {
+      // Stop and mute any other active video preview so sound never clashes
+      document.querySelectorAll('.video-preview').forEach(v => {
+        if (v !== video && !v.paused) {
+          v.pause();
+          v.muted = true;
+        }
+      });
+
       try {
         video.currentTime = 0;
       } catch (e) {}
+
+      // Preview sound at exactly 40% volume
+      video.volume = 0.4;
+      video.muted = false;
+
       // In Side B (Overdrive), preview videos play at 1.35x speed ramp
       video.playbackRate = currentSide === 'B' ? 1.35 : 1.0;
       const playPromise = video.play();
       if (playPromise !== undefined) {
-        playPromise.catch(() => {});
+        playPromise.catch(() => {
+          // If browser autoplay policy blocks unmuted audio before user interaction,
+          // fallback to muted playback so the visual preview continues seamlessly
+          video.muted = true;
+          video.play().catch(() => {});
+        });
       }
     }
 
@@ -538,6 +557,8 @@ function setupTileInteractions(card, video, link) {
       try {
         video.currentTime = 0;
       } catch (e) {}
+      video.muted = true;
+      video.volume = 0.4;
       video.playbackRate = 1.0;
     }
 
