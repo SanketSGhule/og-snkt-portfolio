@@ -339,28 +339,6 @@ const DOM = {
   editCategory: document.getElementById('editCategory'),
   editCancel: document.getElementById('editCancel'),
   editSave: document.getElementById('editSave'),
-  editVideoThumbGroup: document.getElementById('editVideoThumbGroup'),
-  editThumbPreviewBox: document.getElementById('editThumbPreviewBox'),
-  editThumbPreviewImg: document.getElementById('editThumbPreviewImg'),
-  editThumbPlaceholder: document.getElementById('editThumbPlaceholder'),
-  editCaptureVideoBtn: document.getElementById('editCaptureVideoBtn'),
-  editCustomThumbUrl: document.getElementById('editCustomThumbUrl'),
-
-  // Video Thumbnail Modal
-  videoThumbModal: document.getElementById('videoThumbModal'),
-  videoThumbCloseBtn: document.getElementById('videoThumbCloseBtn'),
-  videoThumbCancel: document.getElementById('videoThumbCancel'),
-  videoThumbSaveBtn: document.getElementById('videoThumbSaveBtn'),
-  videoThumbItemTitle: document.getElementById('videoThumbItemTitle'),
-  thumbVideoPlayer: document.getElementById('thumbVideoPlayer'),
-  videoThumbTimecode: document.getElementById('videoThumbTimecode'),
-  videoScrubberSlider: document.getElementById('videoScrubberSlider'),
-  thumbCaptureCanvas: document.getElementById('thumbCaptureCanvas'),
-  thumbCapturePreviewImg: document.getElementById('thumbCapturePreviewImg'),
-  capturedFrameBadge: document.getElementById('capturedFrameBadge'),
-  videoThumbStatus: document.getElementById('videoThumbStatus'),
-  btnStepBack: document.getElementById('btnStepBack'),
-  btnStepFwd: document.getElementById('btnStepFwd'),
 
   // Toast
   toast: document.getElementById('toast')
@@ -1070,7 +1048,6 @@ async function handleUploadSubmit() {
       if (!mediaUrl) {
         throw new Error('Please enter a Media URL or switch to "Upload from Phone"');
       }
-      thumbnailUrl = (DOM.uploadThumbUrl && DOM.uploadThumbUrl.value.trim()) ? DOM.uploadThumbUrl.value.trim() : mediaUrl;
       const isVideo = mediaUrl.match(/\.(mp4|webm|mov|mkv|m4v)(\?.*)?$/i) || mediaUrl.includes('youtube') || mediaUrl.includes('vimeo');
       mediaType = isVideo ? 'video' : 'image';
       setStatus('Publishing project to portfolio...', 50);
@@ -1089,24 +1066,13 @@ async function handleUploadSubmit() {
       }
 
       if (isVideo) {
-        setStatus('Capturing video preview poster...', 15);
-        const thumbBase64 = await captureVideoThumbnail(file);
-
-        if (thumbBase64) {
-          setStatus('Uploading video poster...', 30);
-          const thumbUpload = await uploadBase64ToGitHub(thumbBase64, `thumb_${Date.now()}.jpg`);
-          thumbnailUrl = thumbUpload.cdnUrl;
-        }
-
         setStatus(`Uploading video (${formatFileSize(file.size)})...`, 50);
         const vidUpload = await uploadFileToGitHub(file, 'vid');
         mediaUrl = vidUpload.cdnUrl;
-        if (!thumbnailUrl) thumbnailUrl = mediaUrl;
       } else {
-        setStatus(`Uploading image (${formatFileSize(file.size)})...`, 40);
+        setStatus(`Uploading image (${formatFileSize(file.size)})...`, 50);
         const imgUpload = await uploadFileToGitHub(file, 'img');
         mediaUrl = imgUpload.cdnUrl;
-        thumbnailUrl = mediaUrl;
       }
     }
 
@@ -1119,7 +1085,6 @@ async function handleUploadSubmit() {
       type: mediaType,
       side,
       media_url: mediaUrl,
-      thumbnail_url: thumbnailUrl,
       description
     };
 
@@ -1245,19 +1210,12 @@ function renderManageGrid() {
 
     let mediaElement = '';
     if (isVideo) {
-      if (thumbSrc && !thumbSrc.match(/\.(mp4|webm|mov|mkv|m4v)$/i)) {
-        mediaElement = `
-          <img src="${escapeHtml(thumbSrc)}" alt="${escapeHtml(item.title)}" loading="lazy">
-          <span class="manage-media-badge">VIDEO</span>
-        `;
-      } else {
-        mediaElement = `
-          <video src="${escapeHtml(videoSrc)}" muted preload="metadata"></video>
-          <span class="manage-media-badge">VIDEO</span>
-        `;
-      }
+      mediaElement = `
+        <video src="${escapeHtml(videoSrc)}#t=3" muted preload="metadata" style="width:100%; height:100%; object-fit:cover;"></video>
+        <span class="manage-media-badge">VIDEO (00:03)</span>
+      `;
     } else {
-      mediaElement = `<img src="${escapeHtml(thumbSrc || item.file_path || item.media_url || '')}" alt="${escapeHtml(item.title)}" loading="lazy">`;
+      mediaElement = `<img src="${escapeHtml(item.file_path || item.media_url || '')}" alt="${escapeHtml(item.title)}" loading="lazy">`;
     }
 
     card.innerHTML = `
@@ -1265,13 +1223,11 @@ function renderManageGrid() {
         <input type="checkbox" class="item-checkbox" data-id="${item.id}" title="Select for bulk actions">
       </div>
       <div class="manage-card-actions">
-        ${isVideo ? `<button class="card-action-btn capture-btn" title="Pick thumbnail from video">📸</button>` : ''}
         <button class="card-action-btn edit-btn" title="Edit item">✏️</button>
         <button class="card-action-btn del-btn" title="Delete item">🗑️</button>
       </div>
       <div class="manage-thumb-wrap">
         ${mediaElement}
-        ${isVideo ? `<button type="button" class="manage-thumb-pill-btn" title="Extract thumbnail from video">📸 Video Thumbnail</button>` : ''}
       </div>
       <div class="manage-card-info">
         <div class="manage-card-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</div>
@@ -1294,18 +1250,6 @@ function renderManageGrid() {
       }
       updateBulkDeleteState();
     });
-
-    // Video thumbnail capture button clicks
-    if (isVideo) {
-      const captureBtn = card.querySelector('.capture-btn');
-      const pillBtn = card.querySelector('.manage-thumb-pill-btn');
-      const handleCapture = (e) => {
-        e.stopPropagation();
-        openVideoThumbModal(item);
-      };
-      if (captureBtn) captureBtn.addEventListener('click', handleCapture);
-      if (pillBtn) pillBtn.addEventListener('click', handleCapture);
-    }
 
     // Edit button click
     const editBtn = card.querySelector('.edit-btn');
@@ -1447,39 +1391,6 @@ function openEditModal(item) {
   const sideRadio = document.querySelector(`input[name="editSide"][value="${currentSide}"]`);
   if (sideRadio) sideRadio.checked = true;
 
-  const isVideo = item.file_type === 'video' || item.type === 'video' || (item.file_path && item.file_path.match(/\.(mp4|webm|mov|mkv|m4v)$/i)) || (item.media_url && item.media_url.match(/\.(mp4|webm|mov|mkv|m4v)$/i));
-  if (DOM.editVideoThumbGroup) {
-    if (isVideo) {
-      DOM.editVideoThumbGroup.style.display = 'block';
-      const thumb = item.thumbnail_path || item.thumbnail_url || '';
-      if (thumb && !thumb.match(/\.(mp4|webm|mov|mkv|m4v)$/i)) {
-        if (DOM.editThumbPreviewImg) {
-          DOM.editThumbPreviewImg.src = thumb;
-          DOM.editThumbPreviewImg.style.display = 'block';
-        }
-        if (DOM.editThumbPlaceholder) DOM.editThumbPlaceholder.style.display = 'none';
-      } else {
-        if (DOM.editThumbPreviewImg) DOM.editThumbPreviewImg.style.display = 'none';
-        if (DOM.editThumbPlaceholder) DOM.editThumbPlaceholder.style.display = 'block';
-      }
-      if (DOM.editCustomThumbUrl) DOM.editCustomThumbUrl.value = (thumb && !thumb.match(/\.(mp4|webm|mov|mkv|m4v)$/i)) ? thumb : '';
-    } else {
-      DOM.editVideoThumbGroup.style.display = 'none';
-    }
-  }
-
-  if (DOM.editCaptureVideoBtn) {
-    DOM.editCaptureVideoBtn.onclick = () => {
-      openVideoThumbModal(item, (newThumbUrl) => {
-        if (DOM.editThumbPreviewImg) {
-          DOM.editThumbPreviewImg.src = newThumbUrl;
-          DOM.editThumbPreviewImg.style.display = 'block';
-        }
-        if (DOM.editThumbPlaceholder) DOM.editThumbPlaceholder.style.display = 'none';
-        if (DOM.editCustomThumbUrl) DOM.editCustomThumbUrl.value = newThumbUrl;
-      });
-    };
-  }
 
   DOM.editModal.style.display = 'flex';
   if (DOM.editTitle) DOM.editTitle.focus();
@@ -1593,273 +1504,6 @@ function formatTime(seconds) {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${ms}`;
 }
 
-async function openVideoThumbModal(item, onSavedCallback = null) {
-  currentVideoThumbItem = item;
-  currentVideoThumbCallback = onSavedCallback;
-
-  const modal = DOM.videoThumbModal;
-  if (!modal) return;
-
-  const video = DOM.thumbVideoPlayer;
-  const slider = DOM.videoScrubberSlider;
-  const titleElem = DOM.videoThumbItemTitle;
-  const timecodeElem = DOM.videoThumbTimecode;
-  const statusElem = DOM.videoThumbStatus;
-  const saveBtn = DOM.videoThumbSaveBtn;
-  const canvas = DOM.thumbCaptureCanvas;
-  const previewImg = DOM.thumbCapturePreviewImg;
-  const badge = DOM.capturedFrameBadge;
-
-  if (titleElem) titleElem.textContent = `Scrub through "${item.title || 'Video'}" to pick the best frame as thumbnail.`;
-  if (statusElem) { statusElem.style.display = 'none'; statusElem.textContent = ''; }
-  if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 Save as Item Thumbnail'; }
-  if (previewImg) previewImg.style.display = 'none';
-  if (badge) badge.textContent = 'Loading video stream...';
-
-  modal.style.display = 'flex';
-
-  const videoUrl = item.file_path || item.media_url || '';
-  if (!videoUrl) {
-    showToast('Video URL missing for this item', 'error');
-    closeVideoThumbModal();
-    return;
-  }
-
-  video.crossOrigin = 'anonymous';
-  video.muted = true;
-  video.playsInline = true;
-  video.preload = 'auto';
-
-  // Revoke previous blob if any
-  if (video._blobUrl) {
-    URL.revokeObjectURL(video._blobUrl);
-    video._blobUrl = null;
-  }
-
-  // Attempt fetch as blob if GitHub raw or local upload to guarantee clean canvas without CORS taint
-  try {
-    const token = localStorage.getItem('og_gh_token') || GITHUB_CONFIG.token;
-    const headers = {};
-    if (token && videoUrl.includes('github')) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    const res = await fetch(videoUrl, { headers });
-    if (res.ok) {
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      video._blobUrl = blobUrl;
-      video.src = blobUrl;
-    } else {
-      video.src = videoUrl;
-    }
-  } catch (e) {
-    video.src = videoUrl;
-  }
-
-  // Metadata loaded -> configure slider & seek
-  video.onloadedmetadata = () => {
-    const duration = video.duration || 10;
-    if (slider) {
-      slider.min = '0';
-      slider.max = String(duration);
-      slider.step = String(Math.max(0.02, duration / 500));
-      const initialTime = Math.min(1.0, duration / 2);
-      slider.value = String(initialTime);
-      video.currentTime = initialTime;
-    }
-    if (timecodeElem) {
-      timecodeElem.textContent = `${formatTime(video.currentTime)} / ${formatTime(duration)}`;
-    }
-  };
-
-  // Video seeked -> capture frame to canvas & update preview
-  video.onseeked = () => {
-    try {
-      if (!canvas || !previewImg) return;
-      const maxDim = 1280;
-      const naturalW = video.videoWidth || 720;
-      const naturalH = video.videoHeight || 1280;
-      let targetW = naturalW;
-      let targetH = naturalH;
-      if (targetW > maxDim || targetH > maxDim) {
-        if (targetW >= targetH) {
-          targetH = Math.round((targetH * maxDim) / targetW);
-          targetW = maxDim;
-        } else {
-          targetW = Math.round((targetW * maxDim) / targetH);
-          targetH = maxDim;
-        }
-      }
-      canvas.width = targetW;
-      canvas.height = targetH;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
-      previewImg.src = dataUrl;
-      previewImg.style.display = 'block';
-      if (badge) {
-        badge.textContent = `${canvas.width}×${canvas.height} @ ${formatTime(video.currentTime)}`;
-      }
-    } catch (err) {
-      console.warn('Frame capture notice:', err);
-      if (badge) badge.textContent = 'Frame ready';
-    }
-    if (timecodeElem) {
-      timecodeElem.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration || 0)}`;
-    }
-  };
-
-  video.onerror = (e) => {
-    console.error('Video error:', e);
-    if (badge) badge.textContent = 'Error loading video';
-    showToast('Failed to load video stream', 'error');
-  };
-}
-
-function closeVideoThumbModal() {
-  if (!DOM.videoThumbModal) return;
-  DOM.videoThumbModal.style.display = 'none';
-  if (DOM.thumbVideoPlayer) {
-    DOM.thumbVideoPlayer.pause();
-    DOM.thumbVideoPlayer.removeAttribute('src');
-    DOM.thumbVideoPlayer.load();
-    if (DOM.thumbVideoPlayer._blobUrl) {
-      URL.revokeObjectURL(DOM.thumbVideoPlayer._blobUrl);
-      DOM.thumbVideoPlayer._blobUrl = null;
-    }
-  }
-  currentVideoThumbItem = null;
-  currentVideoThumbCallback = null;
-}
-
-function initVideoThumbModalHandlers() {
-  const modal = DOM.videoThumbModal;
-  const closeBtn = DOM.videoThumbCloseBtn;
-  const cancelBtn = DOM.videoThumbCancel;
-  const saveBtn = DOM.videoThumbSaveBtn;
-  const slider = DOM.videoScrubberSlider;
-  const video = DOM.thumbVideoPlayer;
-  const canvas = DOM.thumbCaptureCanvas;
-  const statusElem = DOM.videoThumbStatus;
-
-  if (closeBtn) closeBtn.addEventListener('click', closeVideoThumbModal);
-  if (cancelBtn) cancelBtn.addEventListener('click', closeVideoThumbModal);
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeVideoThumbModal();
-    });
-  }
-
-  // Scrubber slider input
-  if (slider && video) {
-    slider.addEventListener('input', () => {
-      const targetTime = parseFloat(slider.value);
-      if (!isNaN(targetTime)) {
-        video.currentTime = targetTime;
-      }
-    });
-  }
-
-  // Quick preset buttons
-  document.querySelectorAll('#videoThumbModal .preset-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!video) return;
-      const duration = video.duration || 0;
-      if (btn.hasAttribute('data-time')) {
-        const time = parseFloat(btn.getAttribute('data-time'));
-        video.currentTime = Math.min(time, duration);
-        if (slider) slider.value = String(video.currentTime);
-      } else if (btn.hasAttribute('data-pct')) {
-        const pct = parseFloat(btn.getAttribute('data-pct')) / 100;
-        video.currentTime = duration * pct;
-        if (slider) slider.value = String(video.currentTime);
-      }
-    });
-  });
-
-  // Step buttons
-  if (DOM.btnStepBack && video) {
-    DOM.btnStepBack.addEventListener('click', () => {
-      video.currentTime = Math.max(0, video.currentTime - 0.5);
-      if (slider) slider.value = String(video.currentTime);
-    });
-  }
-  if (DOM.btnStepFwd && video) {
-    DOM.btnStepFwd.addEventListener('click', () => {
-      video.currentTime = Math.min(video.duration || 0, video.currentTime + 0.5);
-      if (slider) slider.value = String(video.currentTime);
-    });
-  }
-
-  // Save button
-  if (saveBtn) {
-    saveBtn.addEventListener('click', async () => {
-      if (!currentVideoThumbItem || !canvas) return;
-
-      saveBtn.disabled = true;
-      saveBtn.textContent = '⏳ Capturing & saving...';
-      if (statusElem) {
-        statusElem.style.display = 'block';
-        statusElem.textContent = 'Uploading captured frame to portfolio...';
-      }
-
-      try {
-        // 1. Get base64 data from canvas
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
-        const base64 = dataUrl.split(',')[1];
-        if (!base64) throw new Error('Could not capture frame from canvas');
-
-        // 2. Upload thumbnail file to GitHub
-        const filename = `thumb_${currentVideoThumbItem.id}_${Date.now()}.jpg`;
-        const uploadResult = await uploadBase64ToGitHub(base64, filename);
-        const newThumbUrl = uploadResult.cdnUrl;
-
-        // 3. Update items.json
-        await editItemDirect(currentVideoThumbItem.id, {
-          thumbnail_url: newThumbUrl,
-          thumbnail_path: newThumbUrl
-        });
-
-        // 4. Update local state
-        currentVideoThumbItem.thumbnail_url = newThumbUrl;
-        currentVideoThumbItem.thumbnail_path = newThumbUrl;
-
-        const match = STATE.items.find(it => String(it.id) === String(currentVideoThumbItem.id));
-        if (match) {
-          match.thumbnail_url = newThumbUrl;
-          match.thumbnail_path = newThumbUrl;
-        }
-
-        // Try backend sync if running server
-        try {
-          await apiCall(`/api/admin/items/${currentVideoThumbItem.id}`, 'PUT', { thumbnail_path: newThumbUrl });
-        } catch (e) {}
-
-        if (typeof currentVideoThumbCallback === 'function') {
-          currentVideoThumbCallback(newThumbUrl);
-        }
-
-        showToast('Thumbnail updated from video!', 'success');
-        closeVideoThumbModal();
-        renderManageGrid();
-      } catch (err) {
-        console.error('Error saving video thumbnail:', err);
-        showToast(err.message || 'Failed to save video thumbnail', 'error');
-        if (statusElem) {
-          statusElem.style.display = 'block';
-          statusElem.textContent = 'Error: ' + (err.message || 'Failed to save');
-        }
-      } finally {
-        if (saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.textContent = '💾 Save as Item Thumbnail';
-        }
-      }
-    });
-  }
-}
-
 // =============================================================================
 // 10. Dashboard Data Initializer & Utilities
 // =============================================================================
@@ -1907,8 +1551,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initManageHandlers();
   initCategoryAddHandler();
   initModalHandlers();
-  initVideoThumbModalHandlers();
-
+  
   // Validate active session
   checkAuth();
 });
