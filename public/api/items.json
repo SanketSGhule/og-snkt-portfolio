@@ -1,35 +1,101 @@
 [
   {
-    "id": 1792709433157,
-    "title": "ANNOUNCEMENT EDIT",
-    "category": "1",
-    "type": "video",
-    "side": "A",
-    "media_url": "https://raw.githubusercontent.com/SanketSGhule/og-snkt-portfolio/main/public/uploads/vid_1792709419975_ynse.mp4",
-    "thumbnail_url": "https://raw.githubusercontent.com/SanketSGhule/og-snkt-portfolio/main/public/uploads/thumb_1792709433157_1792710668306.jpg",
-    "description": "",
-    "thumbnail_path": "https://raw.githubusercontent.com/SanketSGhule/og-snkt-portfolio/main/public/uploads/thumb_1792709433157_1792710668306.jpg"
-  },
-  {
-    "id": 1792709172843,
-    "title": "MERCH INTRO",
-    "category": "1",
-    "type": "video",
-    "side": "B",
-    "media_url": "https://raw.githubusercontent.com/SanketSGhule/og-snkt-portfolio/main/public/uploads/vid_1792709144920_t49j.mp4",
-    "thumbnail_url": "https://raw.githubusercontent.com/SanketSGhule/og-snkt-portfolio/main/public/uploads/thumb_1792709172843_1792711025412.jpg",
-    "description": "Template work",
-    "thumbnail_path": "https://raw.githubusercontent.com/SanketSGhule/og-snkt-portfolio/main/public/uploads/thumb_1792709172843_1792711025412.jpg"
-  },
-  {
-    "id": 1792707170372,
-    "title": "Workshop Event Recap",
+    "id": 1,
+    "title": "Neon Drift Cinematic Reel",
     "category": "Video Edits",
     "type": "video",
     "side": "B",
-    "media_url": "https://raw.githubusercontent.com/SanketSGhule/og-snkt-portfolio/main/public/uploads/vid_1792707140180_vjrz.mp4",
-    "thumbnail_url": "https://raw.githubusercontent.com/SanketSGhule/og-snkt-portfolio/main/public/uploads/thumb_1792707170372_1792711057186.jpg",
-    "description": "",
-    "thumbnail_path": "https://raw.githubusercontent.com/SanketSGhule/og-snkt-portfolio/main/public/uploads/thumb_1792707170372_1792711057186.jpg"
+    "aspect_ratio": "16/9",
+    "media_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "thumbnail_url": "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1000&auto=format&fit=crop&q=80",
+    "description": "High-energy cyberpunk speed cut featuring dynamic speed-ramps and custom sound design."
+  },
+  {
+    "id": 2,
+    "title": "Tokyo Cyberpunk 2099",
+    "category": "Posters",
+    "type": "image",
+    "side": "B",
+    "aspect_ratio": "3/4",
+    "media_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=1600&auto=format&fit=crop&q=85",
+    "thumbnail_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=1000&auto=format&fit=crop&q=80",
+    "description": "Hyper-kinetic neo-brutalist typographic poster series with aggressive typography."
+  },
+  {
+    "id": 3,
+    "title": "Kinetic Quantum Abstract",
+    "category": "Motion Graphics",
+    "type": "video",
+    "side": "B",
+    "aspect_ratio": "16/9",
+    "media_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+    "thumbnail_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80",
+    "description": "3D generative fluid simulation and kinetic type branding loop."
+  },
+  {
+    "id": 4,
+    "title": "Aura Studio Visual Identity",
+    "category": "Design",
+    "type": "image",
+    "side": "A",
+    "aspect_ratio": "4/3",
+    "media_url": "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?w=1600&auto=format&fit=crop&q=85",
+    "thumbnail_url": "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?w=1000&auto=format&fit=crop&q=80",
+    "description": "Complete brand packaging, editorial typography, and minimalist design system."
+  },
+  {
+    "id": 5,
+    "title": "Midnight Echoes Short Film",
+    "category": "Video Edits",
+    "type": "video",
+    "side": "A",
+    "aspect_ratio": "16/9",
+    "media_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+    "thumbnail_url": "https://images.unsplash.com/photo-1536240478700-b869070f9279?w=1000&auto=format&fit=crop&q=80",
+    "description": "Moody narrative edit with film grain emulation and bespoke 35mm color grading."
+  },
+  {
+    "id": 6,
+    "title": "Solstice Music Fest 2024",
+    "category": "Posters",
+    "type": "image",
+    "side": "A",
+    "aspect_ratio": "3/4",
+    "media_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1600&auto=format&fit=crop&q=85",
+    "thumbnail_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1000&auto=format&fit=crop&q=80",
+    "description": "Swiss-style experimental minimal gradient poster for an ambient music festival."
+  },
+  {
+    "id": 7,
+    "title": "Orbit Zero UI Design System",
+    "category": "Design",
+    "type": "image",
+    "side": "A",
+    "aspect_ratio": "16/10",
+    "media_url": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=1600&auto=format&fit=crop&q=85",
+    "thumbnail_url": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=1000&auto=format&fit=crop&q=80",
+    "description": "Pure editorial interface design system for aerospace telemetry."
+  },
+  {
+    "id": 8,
+    "title": "Chrome Horizons 3D Loop",
+    "category": "Motion Graphics",
+    "type": "video",
+    "side": "B",
+    "aspect_ratio": "16/9",
+    "media_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4",
+    "thumbnail_url": "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=1000&auto=format&fit=crop&q=80",
+    "description": "Metallic physics simulation with procedural lighting crafted in Cinema 4D."
+  },
+  {
+    "id": 9,
+    "title": "Subway Beats Rhythm Edit",
+    "category": "Video Edits",
+    "type": "video",
+    "side": "B",
+    "aspect_ratio": "16/9",
+    "media_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+    "thumbnail_url": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1000&auto=format&fit=crop&q=80",
+    "description": "Fast-paced street choreography edit synced with heavy electronic basslines."
   }
 ]
