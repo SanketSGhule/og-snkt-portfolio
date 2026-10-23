@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+cloudflared.exe
+start-tunnel.js
+tunnel-url.txt
+uploads/originals/*
+!uploads/originals/.gitkeep
+uploads/thumbnails/*
+!uploads/thumbnails/.gitkeep
