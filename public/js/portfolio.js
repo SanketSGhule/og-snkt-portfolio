@@ -322,19 +322,28 @@ function renderPortfolioGrid(items) {
     link.setAttribute('data-title', item.title);
     link.setAttribute('data-description', item.description || '');
 
+    const thumbUrl = item.thumbnail_url || item.thumbnail_path || '';
+    if (isVideo && thumbUrl) {
+      link.setAttribute('data-poster', thumbUrl);
+    }
+
     // Container for Media
     const mediaContainer = document.createElement('div');
     mediaContainer.className = 'item-media-container';
 
-    // 1. Initial Aspect Ratio Hint if present
+    // Initial Aspect Ratio Hints if present
     if (item.aspect_ratio) {
       const normRatio = item.aspect_ratio.toString().replace(':', '/');
-      mediaContainer.style.aspectRatio = normRatio;
       mediaContainer.style.setProperty('--aspect-ratio', normRatio);
+      mediaContainer.style.setProperty('--thumb-ratio', normRatio);
+    }
+    if (item.video_aspect_ratio) {
+      const normVidRatio = item.video_aspect_ratio.toString().replace(':', '/');
+      mediaContainer.style.setProperty('--video-ratio', normVidRatio);
     }
 
     if (isVideo) {
-      // Native 00:03 video frame preview (no separate thumbnail image needed)
+      // Video element (plays on hover/touch-and-hold)
       const video = document.createElement('video');
       video.className = 'item-media video-preview';
       video.muted = true;
@@ -344,42 +353,52 @@ function renderPortfolioGrid(items) {
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
 
-      // Select 00:03 (or multiple of 3 if specified) as native video preview frame
-      const targetTime = (item.preview_time && Number(item.preview_time) > 0) ? Number(item.preview_time) : 3;
-      video.dataset.thumbTime = targetTime.toString();
-
       const source = document.createElement('source');
-      source.src = `${item.media_url}#t=${targetTime}`;
+      source.src = item.media_url;
       source.type = 'video/mp4';
       video.appendChild(source);
 
-      // Seek video to 00:03 frame & detect intrinsic pixel ratio
-      const applyFrameSeek = () => {
-        let seekTime = targetTime;
-        if (video.duration && video.duration > 0 && video.duration < seekTime) {
-          seekTime = Math.max(0, video.duration * 0.5);
-        }
-        try {
-          video.currentTime = seekTime;
-          video.dataset.thumbTime = seekTime.toString();
-        } catch (e) {}
-
+      // Detect intrinsic video pixel ratio and set --video-ratio
+      const applyVideoRatio = () => {
         if (video.videoWidth && video.videoHeight) {
-          const ratio = `${video.videoWidth} / ${video.videoHeight}`;
-          mediaContainer.style.aspectRatio = ratio;
-          mediaContainer.style.setProperty('--aspect-ratio', ratio);
-          mediaContainer.dataset.ratioSet = 'true';
+          const vRatio = `${video.videoWidth} / ${video.videoHeight}`;
+          mediaContainer.style.setProperty('--video-ratio', vRatio);
+          if (!thumbUrl) {
+            // No custom thumbnail -> resting ratio matches video
+            mediaContainer.style.setProperty('--thumb-ratio', vRatio);
+            mediaContainer.style.setProperty('--aspect-ratio', vRatio);
+          }
           if (window.ScrollTrigger) ScrollTrigger.refresh();
         }
       };
 
-      video.addEventListener('loadedmetadata', applyFrameSeek);
-      video.addEventListener('canplay', () => {
-        if (!video.dataset.frameSeeked) {
-          applyFrameSeek();
-          video.dataset.frameSeeked = 'true';
+      video.addEventListener('loadedmetadata', applyVideoRatio);
+
+      // Thumbnail Image element (displays at rest, defines resting tile aspect ratio)
+      if (thumbUrl) {
+        const thumbImg = document.createElement('img');
+        thumbImg.className = 'item-media item-thumb-img';
+        thumbImg.src = thumbUrl;
+        thumbImg.alt = item.title;
+        thumbImg.loading = 'lazy';
+
+        const applyThumbRatio = () => {
+          if (thumbImg.naturalWidth && thumbImg.naturalHeight) {
+            const tRatio = `${thumbImg.naturalWidth} / ${thumbImg.naturalHeight}`;
+            mediaContainer.style.setProperty('--thumb-ratio', tRatio);
+            mediaContainer.style.setProperty('--aspect-ratio', tRatio);
+            if (window.ScrollTrigger) ScrollTrigger.refresh();
+          }
+        };
+
+        if (thumbImg.complete && thumbImg.naturalWidth) {
+          applyThumbRatio();
+        } else {
+          thumbImg.addEventListener('load', applyThumbRatio);
         }
-      }, { once: true });
+
+        mediaContainer.appendChild(thumbImg);
+      }
 
       // Play Icon SVG Overlay
       const playIcon = document.createElement('div');
@@ -417,8 +436,8 @@ function renderPortfolioGrid(items) {
       const applyImgRatio = () => {
         if (img.naturalWidth && img.naturalHeight) {
           const ratio = `${img.naturalWidth} / ${img.naturalHeight}`;
-          mediaContainer.style.aspectRatio = ratio;
           mediaContainer.style.setProperty('--aspect-ratio', ratio);
+          mediaContainer.style.setProperty('--thumb-ratio', ratio);
           if (window.ScrollTrigger) ScrollTrigger.refresh();
         }
       };
@@ -479,13 +498,24 @@ function setupTileInteractions(card, video, link) {
   let preventNextClick = false;
   let touchStartX = 0;
   let touchStartY = 0;
+  let morphRefreshTimer = null;
   const HOLD_THRESHOLD_MS = 200;
+
+  const scheduleMorphRefresh = () => {
+    clearTimeout(morphRefreshTimer);
+    morphRefreshTimer = setTimeout(() => {
+      if (window.ScrollTrigger) ScrollTrigger.refresh();
+    }, 450);
+  };
 
   const startPreview = (isTouch = false) => {
     card.classList.add('is-zoomed', 'is-playing');
     if (isTouch) card.classList.add('is-holding', 'is-touch');
 
     if (video) {
+      try {
+        video.currentTime = 0;
+      } catch (e) {}
       // In Side B (Overdrive), preview videos play at 1.35x speed ramp
       video.playbackRate = currentSide === 'B' ? 1.35 : 1.0;
       const playPromise = video.play();
@@ -493,6 +523,8 @@ function setupTileInteractions(card, video, link) {
         playPromise.catch(() => {});
       }
     }
+
+    scheduleMorphRefresh();
 
     if (isTouch && navigator.vibrate) {
       try { navigator.vibrate(30); } catch (e) {}
@@ -503,12 +535,13 @@ function setupTileInteractions(card, video, link) {
     card.classList.remove('is-zoomed', 'is-playing', 'is-holding', 'is-touch');
     if (video) {
       video.pause();
-      const restTime = parseFloat(video.dataset.thumbTime || '3');
       try {
-        video.currentTime = restTime;
+        video.currentTime = 0;
       } catch (e) {}
       video.playbackRate = 1.0;
     }
+
+    scheduleMorphRefresh();
   };
 
   // 1. Desktop Hover
