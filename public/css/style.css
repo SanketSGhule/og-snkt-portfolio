@@ -972,13 +972,22 @@ button {
 }
 
 /* --------------------------------------------------------------------------
-   6. Portfolio Grid & Items
+   6. Portfolio Grid & Items (Masonry Pixel-Ratio & Interactive Zoom/Play)
    -------------------------------------------------------------------------- */
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
+  column-count: 3;
+  column-gap: 24px;
+  width: 100%;
   transition: opacity 0.3s ease;
+  isolation: isolate;
+  position: relative;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    column-count: 2;
+    column-gap: 20px;
+  }
 }
 
 .grid-item {
@@ -987,16 +996,28 @@ button {
   overflow: hidden;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease, opacity 0.3s ease;
   box-shadow: 0 6px 20px var(--shadow);
-  display: flex;
-  flex-direction: column;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 24px;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  vertical-align: top;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-.grid-item:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 16px 36px var(--shadow);
-  border-color: rgba(var(--accent-rgb), 0.45);
+/* Elevated Zoom & Glow Level on Desktop Hover, Mobile Touch-and-Hold, and Active Zoom */
+.grid-item:hover,
+.grid-item.is-holding,
+.grid-item.is-zoomed {
+  transform: translateY(-8px) scale(1.055) !important;
+  z-index: 40 !important;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.58), 0 0 28px rgba(var(--accent-rgb), 0.45) !important;
+  border-color: rgba(var(--accent-rgb), 0.8) !important;
 }
 
 /* Item Initial Animation Target */
@@ -1023,14 +1044,17 @@ button {
   height: 100%;
   overflow: hidden;
   color: inherit;
+  -webkit-touch-callout: none;
 }
 
+/* Dynamic Aspect Ratio Media Container */
 .item-media-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: var(--aspect-ratio, auto);
   overflow: hidden;
   background: var(--bg-secondary);
+  transition: aspect-ratio 0.25s ease;
 }
 
 .item-media {
@@ -1038,11 +1062,13 @@ button {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.5s var(--ease-smooth);
+  transition: transform 0.5s var(--ease-smooth), filter 0.35s ease;
 }
 
-.grid-item:hover .item-media {
-  transform: scale(1.06);
+.grid-item:hover .item-media,
+.grid-item.is-holding .item-media,
+.grid-item.is-zoomed .item-media {
+  transform: scale(1.035);
 }
 
 /* Play Icon Overlay for Videos */
@@ -1064,7 +1090,7 @@ button {
   justify-content: center;
   z-index: 3;
   pointer-events: none;
-  transition: transform 0.35s var(--ease-bounce), background-color 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.35s var(--ease-bounce), background-color 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
@@ -1073,9 +1099,64 @@ button {
 }
 
 .grid-item:hover .play-icon {
-  transform: translate(-50%, -50%) scale(1.15);
   background: var(--accent);
   border-color: var(--accent);
+}
+
+/* Fade out and shrink play button when video is playing/holding */
+.grid-item.is-playing .play-icon,
+.grid-item.is-holding .play-icon,
+.grid-item:hover.is-playing .play-icon {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.65);
+  pointer-events: none;
+}
+
+/* Touch-and-Hold Indicator Badge for Mobile & Preview Feedback */
+.tile-hold-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.9);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.tile-hold-badge .hold-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: tileHoldPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes tileHoldPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.65); }
+}
+
+.grid-item.is-holding .tile-hold-badge,
+.grid-item.is-playing.is-touch .tile-hold-badge {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 /* Item Overlay Info */
@@ -1721,18 +1802,29 @@ button {
     flex-shrink: 0;
   }
 
-  /* Portfolio Cards in Single Column for Mobile */
+  /* Portfolio Cards in Single Column Masonry for Mobile */
   .grid {
-    grid-template-columns: 1fr;
-    gap: 18px;
+    column-count: 1;
+    column-gap: 16px;
   }
 
   .grid-item {
     border-radius: 12px;
+    margin-bottom: 18px;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .grid-item:hover,
+  .grid-item.is-holding,
+  .grid-item.is-zoomed {
+    transform: translateY(-4px) scale(1.04) !important;
   }
 
   .item-media-container {
-    aspect-ratio: 16 / 10;
+    aspect-ratio: var(--aspect-ratio, auto);
   }
 
   .play-icon {
@@ -2400,10 +2492,13 @@ button {
   transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s ease, border-color 0.35s ease;
 }
 
-[data-mode="side-a"] .grid-item:hover {
-  transform: translateY(-6px);
-  border-color: rgba(124, 117, 255, 0.55);
-  box-shadow: 0 18px 45px rgba(7, 9, 20, 0.7);
+[data-mode="side-a"] .grid-item:hover,
+[data-mode="side-a"] .grid-item.is-holding,
+[data-mode="side-a"] .grid-item.is-zoomed {
+  transform: translateY(-8px) scale(1.055) !important;
+  border-color: rgba(124, 117, 255, 0.7) !important;
+  box-shadow: 0 22px 50px rgba(7, 9, 20, 0.75), 0 0 28px rgba(124, 117, 255, 0.4) !important;
+  z-index: 40 !important;
 }
 
 [data-mode="side-a"] .item-category-tag {
@@ -2493,13 +2588,18 @@ button {
   border-color: rgba(255, 0, 60, 0.25);
 }
 
-[data-mode="side-b"] .grid-item:hover {
-  border-color: #ff003c;
-  box-shadow: 0 18px 45px rgba(10, 3, 4, 0.85);
-  animation: cardJitter 0.35s ease-out;
+[data-mode="side-b"] .grid-item:hover,
+[data-mode="side-b"] .grid-item.is-holding,
+[data-mode="side-b"] .grid-item.is-zoomed {
+  transform: translateY(-8px) scale(1.055) !important;
+  border-color: #ff003c !important;
+  box-shadow: 0 24px 54px rgba(10, 3, 4, 0.88), 0 0 34px rgba(255, 0, 60, 0.55) !important;
+  z-index: 40 !important;
 }
 
-[data-mode="side-b"] .grid-item:hover .item-media {
+[data-mode="side-b"] .grid-item:hover .item-media,
+[data-mode="side-b"] .grid-item.is-holding .item-media,
+[data-mode="side-b"] .grid-item.is-zoomed .item-media {
   filter: contrast(1.18) saturate(1.28);
 }
 
@@ -2508,10 +2608,10 @@ button {
 }
 
 @keyframes cardJitter {
-  0% { transform: translateY(-4px) scale(1.02); }
-  25% { transform: translateY(-5px) scale(1.025) skewX(-0.6deg); }
-  50% { transform: translateY(-3px) scale(1.02) skewX(0.6deg); }
-  100% { transform: translateY(-4px) scale(1.02); }
+  0% { transform: translateY(-8px) scale(1.055); }
+  25% { transform: translateY(-9px) scale(1.06) skewX(-0.5deg); }
+  50% { transform: translateY(-7px) scale(1.055) skewX(0.5deg); }
+  100% { transform: translateY(-8px) scale(1.055); }
 }
 
 /* --------------------------------------------------------------------------
@@ -2571,10 +2671,13 @@ button {
   transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s ease, border-color 0.35s ease;
 }
 
-[data-mode="side-all"] .grid-item:hover {
-  transform: translateY(-6px);
-  border-color: rgba(192, 132, 252, 0.65);
-  box-shadow: 0 18px 45px rgba(12, 10, 26, 0.75);
+[data-mode="side-all"] .grid-item:hover,
+[data-mode="side-all"] .grid-item.is-holding,
+[data-mode="side-all"] .grid-item.is-zoomed {
+  transform: translateY(-8px) scale(1.055) !important;
+  border-color: rgba(192, 132, 252, 0.75) !important;
+  box-shadow: 0 22px 50px rgba(12, 10, 26, 0.78), 0 0 28px rgba(168, 85, 247, 0.45) !important;
+  z-index: 40 !important;
 }
 
 [data-mode="side-all"] .item-category-tag {
