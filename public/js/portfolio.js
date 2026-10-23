@@ -703,7 +703,7 @@ function filterPortfolioGrid(category) {
 }
 
 // -----------------------------------------------------------------------------
-// 6. GLightbox Initialization
+// 6. GLightbox Initialization (Default 60% Sound Volume)
 // -----------------------------------------------------------------------------
 function initGLightbox() {
   if (typeof GLightbox === 'undefined') return;
@@ -711,6 +711,14 @@ function initGLightbox() {
   if (lightboxInstance) {
     lightboxInstance.destroy();
   }
+
+  // Pre-seed Plyr localStorage volume settings to 60% (0.6)
+  try {
+    const plyrSettings = JSON.parse(localStorage.getItem('plyr') || '{}');
+    plyrSettings.volume = 0.6;
+    plyrSettings.muted = false;
+    localStorage.setItem('plyr', JSON.stringify(plyrSettings));
+  } catch (e) {}
 
   lightboxInstance = GLightbox({
     selector: '.grid-item:not(.hidden) .glightbox',
@@ -722,6 +730,7 @@ function initGLightbox() {
       js: 'https://cdn.plyr.io/3.7.8/plyr.js',
       config: {
         ratio: '16:9',
+        volume: 0.6,
         muted: false,
         hideControls: true,
         youtube: { noCookie: true, rel: 0, showinfo: 0, iv_load_policy: 3 },
@@ -736,7 +745,50 @@ function initGLightbox() {
       v.pause();
     });
   });
+
+  // Ensure default 60% sound on all lightbox video slides
+  const enforceDefaultVolume = () => {
+    const activeSlide = document.querySelector('.gslide.current') || document.querySelector('.gslide.loaded');
+    if (activeSlide) {
+      const videos = activeSlide.querySelectorAll('video');
+      videos.forEach(v => {
+        try {
+          v.volume = 0.6;
+          v.muted = false;
+        } catch (e) {}
+      });
+      const plyrEl = activeSlide.querySelector('.plyr');
+      if (plyrEl && plyrEl.plyr) {
+        try {
+          plyrEl.plyr.volume = 0.6;
+          plyrEl.plyr.muted = false;
+        } catch (e) {}
+      }
+    }
+  };
+
+  lightboxInstance.on('slide_after_load', enforceDefaultVolume);
+  lightboxInstance.on('slide_changed', enforceDefaultVolume);
 }
+
+// Global capture listeners to guarantee 60% sound whenever a video plays inside GLightbox player
+document.addEventListener('play', (e) => {
+  if (e.target && e.target.tagName === 'VIDEO' && e.target.closest('.glightbox-container')) {
+    try {
+      e.target.volume = 0.6;
+      e.target.muted = false;
+    } catch (err) {}
+  }
+}, true);
+
+document.addEventListener('loadedmetadata', (e) => {
+  if (e.target && e.target.tagName === 'VIDEO' && e.target.closest('.glightbox-container')) {
+    try {
+      e.target.volume = 0.6;
+      e.target.muted = false;
+    } catch (err) {}
+  }
+}, true);
 
 // -----------------------------------------------------------------------------
 // 7. GSAP Animations & ScrollTrigger
