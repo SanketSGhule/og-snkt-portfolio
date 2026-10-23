@@ -305,7 +305,6 @@ function renderPortfolioGrid(items) {
 
   if (emptyState) emptyState.style.display = 'none';
   grid.innerHTML = '';
-  grid.setAttribute('data-count', items.length.toString());
 
   items.forEach(item => {
     const isVideo = item.type === 'video';
@@ -653,11 +652,6 @@ function filterPortfolioGrid(category) {
 
   if (emptyState) {
     emptyState.style.display = visibleCount === 0 ? 'flex' : 'none';
-  }
-
-  const grid = document.getElementById('portfolioGrid');
-  if (grid) {
-    grid.setAttribute('data-count', visibleCount.toString());
   }
 
   // Refresh ScrollTrigger calculations
