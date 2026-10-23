@@ -803,13 +803,16 @@ button {
   .badge-apparel { bottom: 16%; right: 3%; }
 }
 
-@media (max-width: 768px) {
-  /* On mobile screens, hide floating badges and HUD overlays to ensure zero visual clutter and prevent overlapping text */
-  .hero-hud {
+@media (max-width: 1200px) {
+  /* On laptop, tablet & mobile screens, hide floating badges to ensure clean alignment and prevent overlapping text */
+  .hero-floating-elements {
     display: none !important;
   }
-  
-  .hero-floating-elements {
+}
+
+@media (max-width: 768px) {
+  /* On mobile screens, hide HUD overlays to ensure zero visual clutter */
+  .hero-hud {
     display: none !important;
   }
 }
@@ -855,12 +858,14 @@ button {
 }
 
 .hero-subtitle {
-  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-size: clamp(0.95rem, 1.8vw, 1.25rem);
   color: var(--text-secondary);
   font-weight: 400;
-  letter-spacing: 0.04em;
-  max-width: 640px;
-  margin-bottom: 50px;
+  letter-spacing: 0.03em;
+  max-width: 820px;
+  margin-bottom: 44px;
+  line-height: 1.6;
+  text-wrap: balance;
   opacity: 0;
   transform: translateY(20px);
 }
@@ -988,6 +993,41 @@ button {
     column-count: 2;
     column-gap: 20px;
   }
+}
+
+/* Dynamic Symmetrical Alignment for Single or Few Items (Side A / Side B) */
+.grid[data-count="1"] {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  column-count: unset !important;
+  width: 100% !important;
+  margin: 0 auto;
+}
+
+.grid[data-count="1"] .grid-item {
+  width: 100% !important;
+  max-width: 420px !important;
+  margin: 0 auto 24px !important;
+}
+
+.grid[data-count="2"] {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  flex-wrap: wrap !important;
+  gap: 24px !important;
+  column-count: unset !important;
+  max-width: 920px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+.grid[data-count="2"] .grid-item {
+  width: calc(50% - 12px) !important;
+  max-width: 420px !important;
+  margin-bottom: 24px !important;
+  flex: 0 1 calc(50% - 12px) !important;
 }
 
 .grid-item {
@@ -1626,15 +1666,31 @@ button {
 /* --------------------------------------------------------------------------
    10. Responsive Breakpoints
    -------------------------------------------------------------------------- */
+@media (min-width: 900px) {
+  /* Dead-Center Side Switcher on Desktop directly over the vertical center line */
+  .nav-container {
+    position: relative;
+  }
+
+  .side-switcher {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+  }
+}
+
 @media (min-width: 1025px) {
   .grid {
-    grid-template-columns: repeat(3, 1fr);
+    column-count: 3;
+    column-gap: 24px;
   }
 }
 
 @media (max-width: 1024px) and (min-width: 769px) {
   .grid {
-    grid-template-columns: repeat(2, 1fr);
+    column-count: 2;
+    column-gap: 20px;
   }
 }
 
@@ -1802,19 +1858,33 @@ button {
     flex-shrink: 0;
   }
 
-  /* Portfolio Cards in Single Column Masonry for Mobile */
+  /* Portfolio Cards in Single Column for Mobile */
   .grid {
-    column-count: 1;
+    column-count: 1 !important;
     column-gap: 16px;
+    display: block !important;
+    width: 100% !important;
   }
 
+  .grid[data-count="1"],
+  .grid[data-count="2"] {
+    display: block !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+  }
+
+  .grid[data-count="1"] .grid-item,
+  .grid[data-count="2"] .grid-item,
   .grid-item {
     border-radius: 12px;
-    margin-bottom: 18px;
+    margin-bottom: 18px !important;
     break-inside: avoid;
     -webkit-column-break-inside: avoid;
-    display: inline-block;
-    width: 100%;
+    display: inline-block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: unset !important;
   }
 
   .grid-item:hover,
