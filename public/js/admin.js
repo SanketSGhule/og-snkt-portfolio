@@ -98,8 +98,22 @@ function captureVideoThumbnail(videoFile) {
         clearTimeout(timeout);
         try {
           const canvas = document.createElement('canvas');
-          canvas.width = Math.min(video.videoWidth || 640, 1280);
-          canvas.height = Math.min(video.videoHeight || 360, 720);
+          const maxDim = 1280;
+          const naturalW = video.videoWidth || 720;
+          const naturalH = video.videoHeight || 1280;
+          let targetW = naturalW;
+          let targetH = naturalH;
+          if (targetW > maxDim || targetH > maxDim) {
+            if (targetW >= targetH) {
+              targetH = Math.round((targetH * maxDim) / targetW);
+              targetW = maxDim;
+            } else {
+              targetW = Math.round((targetW * maxDim) / targetH);
+              targetH = maxDim;
+            }
+          }
+          canvas.width = targetW;
+          canvas.height = targetH;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
@@ -1662,8 +1676,22 @@ async function openVideoThumbModal(item, onSavedCallback = null) {
   video.onseeked = () => {
     try {
       if (!canvas || !previewImg) return;
-      canvas.width = Math.min(video.videoWidth || 640, 1280);
-      canvas.height = Math.min(video.videoHeight || 360, 720);
+      const maxDim = 1280;
+      const naturalW = video.videoWidth || 720;
+      const naturalH = video.videoHeight || 1280;
+      let targetW = naturalW;
+      let targetH = naturalH;
+      if (targetW > maxDim || targetH > maxDim) {
+        if (targetW >= targetH) {
+          targetH = Math.round((targetH * maxDim) / targetW);
+          targetW = maxDim;
+        } else {
+          targetW = Math.round((targetW * maxDim) / targetH);
+          targetH = maxDim;
+        }
+      }
+      canvas.width = targetW;
+      canvas.height = targetH;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
