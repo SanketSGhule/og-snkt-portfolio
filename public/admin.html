@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OG.SNKT — Admin Panel</title>
-  <link rel="stylesheet" href="/css/style.css?v=2.9">
-  <link rel="stylesheet" href="/css/admin.css?v=2.9">
+  <link rel="stylesheet" href="/css/style.css?v=3.0">
+  <link rel="stylesheet" href="/css/admin.css?v=3.0">
 </head>
 <body>
   <!-- LOGIN SCREEN -->
@@ -73,6 +73,32 @@
       <div class="upload-form" id="uploadForm">
         <input type="text" id="uploadTitle" placeholder="Project Title (required)" required>
         <textarea id="uploadDesc" placeholder="Description / Narrative (optional)" rows="3"></textarea>
+
+        <!-- Thumbnail Section (Controls resting tile aspect ratio) -->
+        <div class="form-group thumbnail-upload-section" id="thumbUploadSection">
+          <label class="form-label" style="font-weight:600; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <span>Custom Thumbnail Image <small style="font-weight:normal; opacity:0.75;">(Determines resting tile pixel ratio)</small></span>
+            <span class="badge-optional" style="font-size:0.7rem; padding:2px 8px; border-radius:999px; background:rgba(255,107,53,0.15); color:var(--accent); font-weight:600;">RECOMMENDED FOR VIDEOS</span>
+          </label>
+          <div class="thumb-upload-box" id="thumbUploadBox">
+            <label for="thumbFileInput" class="thumb-drop-zone" id="thumbDropZone">
+              <span class="thumb-drop-icon">🖼️</span>
+              <span class="thumb-drop-text">Pick thumbnail image from phone (JPG/PNG/WebP)</span>
+              <input type="file" id="thumbFileInput" accept="image/*" style="display:none;">
+            </label>
+            <div class="thumb-preview-wrap" id="thumbPreviewWrap" style="display:none;">
+              <img id="thumbPreviewImg" src="" alt="Thumbnail preview">
+              <div class="thumb-preview-info">
+                <span id="thumbPreviewName" class="thumb-preview-name"></span>
+                <span id="thumbPreviewRatio" class="thumb-ratio-tag"></span>
+                <button type="button" class="btn-thumb-remove" id="btnRemoveThumb" title="Remove thumbnail">✕ Remove</button>
+              </div>
+            </div>
+          </div>
+          <div id="thumbUrlWrap" style="display:none; margin-top:8px;">
+            <input type="url" id="uploadThumbUrl" placeholder="Or enter Thumbnail Image URL (optional)">
+          </div>
+        </div>
         
         <label class="form-label" style="font-weight:600; margin-top:4px;">Category:</label>
         <select id="uploadCategory"></select>
@@ -143,6 +169,29 @@
       <input type="text" id="editTitle" placeholder="Title">
       <textarea id="editDesc" placeholder="Description" rows="3"></textarea>
       <select id="editCategory"></select>
+
+      <!-- Edit Thumbnail Section -->
+      <div class="form-group edit-thumb-section" style="margin-top:10px;">
+        <label class="form-label" style="font-weight:600; display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+          <span>Thumbnail Image</span>
+          <small style="opacity:0.75;">(Resting tile aspect ratio)</small>
+        </label>
+        <div class="edit-thumb-container" style="display:flex; gap:12px; align-items:center;">
+          <div class="edit-thumb-preview-box" id="editThumbPreviewBox" style="width:84px; height:56px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border); overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <img id="editThumbImg" src="" alt="Current thumbnail" style="width:100%; height:100%; object-fit:cover; display:none;">
+            <span id="editThumbPlaceholder" style="font-size:0.75rem; color:var(--text-secondary); text-align:center; padding:4px;">No Thumb</span>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+            <label for="editThumbFileInput" class="btn-secondary" style="display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; font-size:0.82rem; padding:8px 12px; border-radius:6px; text-align:center;">
+              <span>📁 Upload / Replace Thumbnail</span>
+              <input type="file" id="editThumbFileInput" accept="image/*" style="display:none;">
+            </label>
+            <button type="button" class="btn-text" id="editThumbRemoveBtn" style="font-size:0.75rem; color:#ef4444; background:none; border:none; cursor:pointer; text-align:left; padding:2px 0; display:none;">✕ Remove Thumbnail</button>
+          </div>
+        </div>
+        <input type="url" id="editThumbUrlInput" placeholder="Or paste Thumbnail Image URL" style="margin-top:8px; font-size:0.85rem;">
+      </div>
+
       <div class="form-group side-selector-group">
         <label class="form-label">Portfolio Side:</label>
         <div class="side-radio-group" id="editSideGroup">
@@ -174,6 +223,6 @@
   <div class="toast" id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-  <script src="/js/admin.js?v=2.9"></script>
+  <script src="/js/admin.js?v=3.0"></script>
 </body>
 </html>
